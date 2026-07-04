@@ -1,4 +1,4 @@
-# CLAUDE.md — Subproyecto **Legado** (`games/legado/`)
+# CLAUDE.md — Subproyecto **Idle Legacy Tycoon** (`games/idle-legacy-tycoon/`)
 
 > Subproyecto del hub `Shein` (ver `../../CLAUDE.md`). Lee `docs/plan-maestro.md` al retomar —
 > es la fuente de verdad del roadmap, la temática y las decisiones de arquitectura.
@@ -42,7 +42,9 @@ blast radius con este repo (colaboradores, visibilidad pública futura, logs de 
   de suministro: pnpm aísla scripts de instalación no aprobados y verifica el lockfile).
   - `pnpm install`, `pnpm dev`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`.
 - **CI:** `.github/workflows/ci.yml` en cada push/PR a `main` (lint → typecheck → test → build).
-- **Despliegue:** Cloudflare Pages conectado al repo de GitHub, build automático en cada push.
+- **Despliegue:** Cloudflare Workers (assets estáticos vía `wrangler.toml`, flujo unificado de
+  Workers/Pages) conectado al repo de GitHub, build automático en cada push.
+  Preview: https://idle-legacy-tycoon.adrianpelayo-a.workers.dev
 
 ## Documentación
 

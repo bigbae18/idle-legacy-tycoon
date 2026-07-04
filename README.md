@@ -1,4 +1,4 @@
-# Legado
+# Idle Legacy Tycoon
 
 Idle/tycoon web: gestionas una civilización que evoluciona por eras históricas (Antiguo Egipto →
 Roma → Edad Media → …). Capa de colección tipo gacha ligero: figuras históricas reales e

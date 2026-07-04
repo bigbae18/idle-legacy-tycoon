@@ -1,8 +1,8 @@
 {
-  "name": "legado",
+  "name": "idle-legacy-tycoon",
   "version": "0.0.0",
   "private": true,
-  "description": "Legado — idle/tycoon web: gestiona una civilización que evoluciona por eras históricas.",
+  "description": "Idle Legacy Tycoon — idle/tycoon web: gestiona una civilización que evoluciona por eras históricas.",
   "type": "module",
   "packageManager": "pnpm@11.9.0",
   "scripts": {

@@ -1,4 +1,4 @@
-# Legado — plan maestro
+# Idle Legacy Tycoon — plan maestro
 
 > Fuente de verdad del roadmap de este subproyecto (equivalente a `trading/docs/14-plan-maestro.md`
 > para el hub). Empieza por aquí al retomar el proyecto.
@@ -33,11 +33,11 @@ pareja (perfil creativo).
   Idle Civilization*) — no es un hueco vacío. Decisión consciente: diferenciarse por **arte, tono y
   la capa de colección propia**, no por ser los primeros — coherente con la filosofía ya escrita en
   [`../../primer-idle/README.md`](../../primer-idle/README.md) ("la temática/encanto diferencia").
-- **Nombre de trabajo: "Legado"** (repo GitHub: `idle-legacy-tycoon`, cuenta `bigbae18` — el slug del
-  repo difiere del nombre de marca, es intencional y no bloqueante). Se evitó a propósito el patrón
-  genérico "Idle [Tema] Tycoon" para el nombre de marca: la investigación encontró un caso real de
-  Kolibri Games enviando un aviso de infracción de marca a un indie por usar ese patrón. Nombre de
-  trabajo: renombrar es trivial si la pareja decide otra cosa al definir arte/marca definitivos.
+- **Nombre:** durante el scaffolding se usó "Legado" como nombre de trabajo (evitando a propósito el
+  patrón genérico "Idle [Tema] Tycoon" para el que la investigación encontró un caso real de Kolibri
+  Games enviando un aviso de infracción de marca a un indie por usarlo). **El usuario decidió el
+  nombre definitivo: "Idle Legacy Tycoon"** (repo GitHub `idle-legacy-tycoon`, cuenta `bigbae18`) —
+  se renombró todo el proyecto (carpeta, `package.json`, título, docs) a este nombre.
 
 ## Backend y anti-trampa
 
@@ -74,9 +74,9 @@ defecto). Sin motor de juego (React/DOM puro — ver
 tipos de `src/core/` pero no al revés. `src/ui/` es la única capa que importa React.
 
 ```
-games/legado/
+games/idle-legacy-tycoon/
   package.json, tsconfig*.json, vite.config.ts, eslint.config.js, .prettierrc, .gitignore
-  index.html, README.md, CLAUDE.md
+  index.html, README.md, CLAUDE.md, wrangler.toml
   .github/workflows/ci.yml
   docs/
     plan-maestro.md          ← este documento
@@ -109,15 +109,17 @@ games/legado/
 Node ≥22.13 (usa el módulo interno `node:sqlite`) — Node 20 revienta el CI con
 `ERR_UNKNOWN_BUILTIN_MODULE`; `.nvmrc` y `engines.node` en `package.json` están alineados a esto.
 
-**Despliegue:** conectar el repo de GitHub a **Cloudflare Pages** — build automático en cada push a
-`main`, preview automático en cada PR, sin configuración de servidor. Alternativas válidas sin
-bloqueo de arquitectura: Netlify, GitHub Pages.
+**Despliegue:** repo de GitHub conectado a **Cloudflare Workers** (flujo unificado de Workers/Pages,
+sirve `dist/` como assets estáticos vía `wrangler.toml` con `deploy command: npx wrangler deploy`,
+fallback SPA activado) — build automático en cada push a `main`. Preview en producción:
+https://idle-legacy-tycoon.adrianpelayo-a.workers.dev (verificado, HTTP 200). Alternativas válidas
+sin bloqueo de arquitectura: Netlify, GitHub Pages.
 
 ## Hoja de ruta del MVP (subfases)
 
 | Fase | Estado | Entregable | Tests clave |
 |---|---|---|---|
-| MVP-0 | ✅ Hecho | Scaffold: Vite+React+TS+pnpm, lint/format, Vitest+RTL, CI en verde, repo en GitHub | Test dummy pasa en CI; build funciona |
+| MVP-0 | ✅ Hecho | Scaffold: Vite+React+TS+pnpm, lint/format, Vitest+RTL, CI en verde, repo en GitHub, desplegado en Cloudflare Workers | Test dummy pasa en CI; build funciona; preview público responde 200 |
 | MVP-1 | Pendiente | Motor de tick puro (`core/types.ts`, `core/tick.ts`) | delta=0 no-op; delta=N produce N×rate; rate=0 no produce nada |
 | MVP-2 | Pendiente | Bucle de juego en vivo (UI mínima): `useGameLoop`, `GameProvider`, `ResourceDisplay` | Con fake timers, el estado avanza; el componente renderiza el número |
 | MVP-3 | Pendiente | Upgrades (`core/upgrades.ts`, `UpgradeList`) | Sin fondos → no-op; con fondos → descuenta y sube de nivel; el coste escala bien |
