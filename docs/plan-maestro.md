@@ -86,8 +86,11 @@ games/idle-legacy-tycoon/
     persistence/   ← guardado/carga localStorage + migraciones de esquema
     ui/            ← componentes React + hooks
     test/setup.ts  ← configuración de Vitest (jest-dom)
-    App.tsx, App.test.tsx, main.tsx, vite-env.d.ts
+    App.tsx, App.test.tsx, main.tsx, vite-env.d.ts, index.css
 ```
+
+`index.css`: CSS plano global (sin CSS modules ni librerías) — layout, tipografía, color de acento y
+estados de botón, sin ningún asset. Es un placeholder visual, no la marca/arte final de la pareja.
 
 **Decisiones de diseño específicas del género (idle game):**
 - **Números grandes: NO en el MVP.** `Number.MAX_SAFE_INTEGER` sobra para el alcance del MVP. Toda
@@ -124,30 +127,31 @@ sin bloqueo de arquitectura: Netlify, GitHub Pages.
 | MVP-2 | ✅ Hecho | Bucle de juego en vivo (UI mínima): `useGameLoop`, `GameProvider`, `ResourceDisplay` | Con fake timers, el estado avanza; el componente renderiza el número |
 | MVP-3 | ✅ Hecho | Upgrades (`core/upgrades.ts`, `UpgradeList`) | Sin fondos → no-op; con fondos → descuenta y sube de nivel; el coste escala bien |
 | MVP-4 | ✅ Hecho | Guardado local + versión de esquema (autosave por intervalo + `visibilitychange`) | Guardar/recargar reproduce el estado; JSON corrupto/vacío cae a un estado seguro; versión correcta |
+| MVP-4.5 | ✅ Hecho | Reescala de economía + `core/numbers.ts` (formato K/M/B, adelantado desde MVP-10) + CSS base sin assets | `perSecondToPerMs`/`formatNumber` con TDD; verificado a ojo en servidor de preview aislado que el ritmo se siente jugable (~10-15s la primera mejora) |
 | MVP-5 | Pendiente | Ganancias offline por reloj real (`core/offline.ts`, `OfflineEarningsModal`) | Delta negativo → 0; delta enorme → cap; delta normal → delta×rate |
 | MVP-6 | Pendiente | Prestigio (`core/prestige.ts`, `PrestigePanel` con confirmación) | Por debajo del umbral no disponible; el reset limpia recursos/upgrades pero preserva/aumenta el multiplicador |
 | MVP-7 | Pendiente | Primera migración real de guardado (cuando MVP-3/6 cambien la forma del save) | Save fixture antiguo migra correctamente; un save ya migrado no se remigra |
 | MVP-8 | Pendiente | Monetización: anuncios opt-in (stub) (`AdRewardButton` tras interfaz `AdProvider` mockable) | Deshabilitado tras reclamar la recompensa del periodo |
 | MVP-9 | Pendiente | Monetización: moneda premium + IAP quitar anuncios (interfaz `PaymentProvider` stub) | Comprar "quitar anuncios" persiste el flag y oculta la UI de anuncios tras recargar |
-| MVP-10 | Pendiente | Pulido agnóstico de tema (animaciones, formato K/M/B en `core/numbers.ts`) | Umbrales de formato (999→"999", 1000→"1.0K", …) |
+| MVP-10 | Pendiente | Pulido agnóstico de tema (animaciones/transiciones; el formato K/M/B ya se hizo en MVP-4.5) | — |
 | MVP-11 | Pendiente | Despliegue final del MVP + checklist manual de humo | Checklist manual; Playwright opcional |
 
 Cada subfase es una sesión de implementación TDD independiente (test en rojo → código → refactor).
 Ninguna fase depende del tema/arte del juego — la UI se construye contra datos genéricos, así que los
 assets reales de la pareja son un reemplazo, no una reescritura.
 
-## Nota de diseño pendiente (detectada en MVP-3, no bloqueante)
+## Nota de diseño: ritmo de la economía (detectada en MVP-3, resuelta parcialmente en MVP-4.5)
 
-Las constantes de `core/upgrades.ts` (`BASE_COST=10`, `COST_GROWTH=1.15`) y el `rate` inicial en
-`App.tsx` (`1`/ms) son **valores de relleno** puestos solo para poder probar el mecanismo con tests
-deterministas — no hay todavía catálogo real de mejoras (solo hay una, de prueba) ni diseño de
-economía. Consecuencia observada: el `rate` es tan alto respecto al coste que (a) la primera mejora
-se alcanza casi al instante, sin sensación de progreso, y (b) gastar el coste al comprar es
-imperceptible porque el `amount` se "recupera" en milisegundos — ambas son la misma causa de fondo
-(desequilibrio coste/rate), no dos problemas distintos. **Aplazado a propósito** hasta que exista un
-catálogo real de mejoras y una economía pensada de verdad (probablemente junto con la capa de
-colección/gacha, ver más abajo) — afinar estos números ahora sería tirar el trabajo cuando llegue el
-diseño real.
+Tras jugar un poco con el MVP-3, se detectó que el `rate` inicial (1/ms = 1000/seg) era tan alto
+respecto al coste de la primera mejora (10) que (a) se alcanzaba casi al instante, sin sensación de
+progreso, y (b) gastar el coste al comprar era imperceptible porque el `amount` se "recuperaba" en
+milisegundos — ambas son la misma causa de fondo (desequilibrio coste/rate), no dos problemas
+distintos. En MVP-4.5 se reescaló a magnitudes por segundo (vía `core/numbers.ts:perSecondToPerMs`):
+ahora la primera mejora tarda ~10-15s, un ritmo que sí se siente como un juego real. **Sigue siendo
+economía de relleno**, no balance final — no hay todavía catálogo real de mejoras (solo hay una, de
+prueba). El balance final (número de mejoras, curva de coste definitiva, sensación de progresión a
+largo plazo) queda aplazado a propósito hasta que exista un catálogo real, probablemente junto con la
+capa de colección/gacha (ver más abajo).
 
 ## Fases posteriores (fuera de alcance del MVP, no diseñadas todavía)
 

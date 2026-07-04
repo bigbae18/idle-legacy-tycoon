@@ -1,8 +1,10 @@
+import { perSecondToPerMs } from './numbers'
 import type { GameState } from './types'
 
 const BASE_COST = 10
 const COST_GROWTH = 1.15
-const RATE_PER_LEVEL = 1
+/** +1/seg de producción por cada nivel comprado (valor de relleno, no economía final — ver plan-maestro.md). */
+const RATE_PER_LEVEL = perSecondToPerMs(1)
 
 /** Coste de comprar la mejora estando en `level` (el nivel actual, antes de comprarla). */
 export function upgradeCost(level: number): number {
