@@ -136,6 +136,19 @@ Cada subfase es una sesión de implementación TDD independiente (test en rojo �
 Ninguna fase depende del tema/arte del juego — la UI se construye contra datos genéricos, así que los
 assets reales de la pareja son un reemplazo, no una reescritura.
 
+## Nota de diseño pendiente (detectada en MVP-3, no bloqueante)
+
+Las constantes de `core/upgrades.ts` (`BASE_COST=10`, `COST_GROWTH=1.15`) y el `rate` inicial en
+`App.tsx` (`1`/ms) son **valores de relleno** puestos solo para poder probar el mecanismo con tests
+deterministas — no hay todavía catálogo real de mejoras (solo hay una, de prueba) ni diseño de
+economía. Consecuencia observada: el `rate` es tan alto respecto al coste que (a) la primera mejora
+se alcanza casi al instante, sin sensación de progreso, y (b) gastar el coste al comprar es
+imperceptible porque el `amount` se "recupera" en milisegundos — ambas son la misma causa de fondo
+(desequilibrio coste/rate), no dos problemas distintos. **Aplazado a propósito** hasta que exista un
+catálogo real de mejoras y una economía pensada de verdad (probablemente junto con la capa de
+colección/gacha, ver más abajo) — afinar estos números ahora sería tirar el trabajo cuando llegue el
+diseño real.
+
 ## Fases posteriores (fuera de alcance del MVP, no diseñadas todavía)
 
 En paralelo con el roadmap de [`../../primer-idle/README.md`](../../primer-idle/README.md): capa de
