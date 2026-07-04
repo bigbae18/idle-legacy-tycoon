@@ -123,7 +123,7 @@ sin bloqueo de arquitectura: Netlify, GitHub Pages.
 | MVP-1 | ✅ Hecho | Motor de tick puro (`core/types.ts`, `core/tick.ts`) | delta=0 no-op; delta=N produce N×rate; rate=0 no produce nada |
 | MVP-2 | ✅ Hecho | Bucle de juego en vivo (UI mínima): `useGameLoop`, `GameProvider`, `ResourceDisplay` | Con fake timers, el estado avanza; el componente renderiza el número |
 | MVP-3 | ✅ Hecho | Upgrades (`core/upgrades.ts`, `UpgradeList`) | Sin fondos → no-op; con fondos → descuenta y sube de nivel; el coste escala bien |
-| MVP-4 | Pendiente | Guardado local + versión de esquema (autosave por intervalo + `visibilitychange`) | Guardar/recargar reproduce el estado; JSON corrupto/vacío cae a un estado seguro; versión correcta |
+| MVP-4 | ✅ Hecho | Guardado local + versión de esquema (autosave por intervalo + `visibilitychange`) | Guardar/recargar reproduce el estado; JSON corrupto/vacío cae a un estado seguro; versión correcta |
 | MVP-5 | Pendiente | Ganancias offline por reloj real (`core/offline.ts`, `OfflineEarningsModal`) | Delta negativo → 0; delta enorme → cap; delta normal → delta×rate |
 | MVP-6 | Pendiente | Prestigio (`core/prestige.ts`, `PrestigePanel` con confirmación) | Por debajo del umbral no disponible; el reset limpia recursos/upgrades pero preserva/aumenta el multiplicador |
 | MVP-7 | Pendiente | Primera migración real de guardado (cuando MVP-3/6 cambien la forma del save) | Save fixture antiguo migra correctamente; un save ya migrado no se remigra |
