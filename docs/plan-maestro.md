@@ -159,3 +159,35 @@ En paralelo con el roadmap de [`../../primer-idle/README.md`](../../primer-idle/
 colección/gacha (figuras históricas de cada era), ranking/social (dispara la necesidad de backend —
 ver PocketBase arriba), pase de batalla, multijugador asíncrono. No se diseña nada de esto hasta
 cerrar el MVP.
+
+## Visión a largo plazo del usuario — ideas sin aterrizar (anotadas 2026-07-04)
+
+Al cerrar esta sesión, el usuario adelantó que tiene en mente un juego bastante más ambicioso que el
+MVP actual, con **checkpoints/regiones** y **varios rebirths** (plural — más de una capa de
+prestigio/renacimiento, no solo el prestigio único y plano de MVP-6), además de querer **una buena
+historia**. En sus propias palabras: "tengo mucho pensado pero hay que aterrizar muchas cosas" — es
+decir, son ideas de dirección, no decisiones tomadas ni diseño a implementar todavía.
+
+**Matiz importante a resolver en una futura sesión, no a asumir:** en la sesión recuperada tras el
+BSOD (ver `../../../docs/juego-narrativo-webgl.md` y la memoria `[[proyecto-idle-legacy-tycoon]]`),
+el propio usuario ya corrigió explícitamente que este juego **NO** es narrativo pesado — al mencionar
+"historia" se refería a lore ligero por desbloqueo (estilo *Idle Miner Tycoon*), no a una trama tipo
+*Night in the Woods*, y por eso se descartó la vía Three.js/narrativa completa. La nueva mención de
+"una buena historia" puede ser compatible con eso (lore rico y currado por región/era, no una trama
+jugable) o puede ser una ampliación real de ambición hacia algo más narrativo — **no dar nada por
+sentado; preguntar y aclarar esto explícitamente antes de diseñar checkpoints/regiones/rebirths**.
+
+Conexión natural a explorar (sin decidir): la temática ya elegida (civilización que evoluciona por
+eras históricas) encaja de forma bastante directa con la idea de "regiones" — cada era podría ser una
+región/checkpoint desbloqueable — pero esto es una hipótesis a validar con el usuario, no un diseño
+cerrado.
+
+## Dónde lo dejamos (2026-07-04)
+
+**MVP-0 a MVP-4.5 completos, verificados y desplegados** (ver tabla de arriba) — bucle de tick,
+upgrades, guardado local con autosave, economía a un ritmo jugable, y una capa visual básica sin
+assets. CI en verde en cada paso, preview público funcionando en
+https://idle-legacy-tycoon.adrianpelayo-a.workers.dev. **Siguiente paso técnico:** MVP-5 (ganancias
+offline por reloj real). **Antes de seguir escalando mecánicas**, conviene una conversación dedicada
+sobre la visión a largo plazo de arriba (checkpoints/regiones/rebirths/historia) para que el roadmap
+MVP-6 en adelante se diseñe con esa dirección en mente, en vez de a ciegas.
