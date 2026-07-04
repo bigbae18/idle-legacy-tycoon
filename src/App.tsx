@@ -1,9 +1,20 @@
+import { ResourceDisplay } from './ui/components/ResourceDisplay/ResourceDisplay'
+import { GameProvider } from './ui/GameProvider'
+import { useGame } from './ui/hooks/useGame'
+
+function GameScreen() {
+  const { state } = useGame()
+  return <ResourceDisplay amount={state.amount} />
+}
+
 function App() {
   return (
-    <main>
-      <h1>Idle Legacy Tycoon</h1>
-      <p>Scaffold en marcha — el bucle de juego llega en MVP-1.</p>
-    </main>
+    <GameProvider initialState={{ amount: 0, rate: 1 }}>
+      <main>
+        <h1>Idle Legacy Tycoon</h1>
+        <GameScreen />
+      </main>
+    </GameProvider>
   )
 }
 
