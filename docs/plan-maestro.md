@@ -103,9 +103,11 @@ games/legado/
 
 ## CI/CD
 
-`.github/workflows/ci.yml`, en push/PR a `main`: checkout → `pnpm/action-setup` → `setup-node@20`
+`.github/workflows/ci.yml`, en push/PR a `main`: checkout → `pnpm/action-setup` → `setup-node@22`
 (cache pnpm) → `pnpm install --frozen-lockfile` → `pnpm lint` → `pnpm typecheck` → `pnpm test` →
-`pnpm build`. Sin secretos en el MVP (no hay backend que exponer).
+`pnpm build`. Sin secretos en el MVP (no hay backend que exponer). **Nota:** `pnpm@11.9.0` requiere
+Node ≥22.13 (usa el módulo interno `node:sqlite`) — Node 20 revienta el CI con
+`ERR_UNKNOWN_BUILTIN_MODULE`; `.nvmrc` y `engines.node` en `package.json` están alineados a esto.
 
 **Despliegue:** conectar el repo de GitHub a **Cloudflare Pages** — build automático en cada push a
 `main`, preview automático en cada PR, sin configuración de servidor. Alternativas válidas sin
