@@ -4,7 +4,7 @@ import type { GameState } from './types'
 
 describe('tick', () => {
   it('delta=0 no modifica el estado', () => {
-    const state: GameState = { amount: 10, rate: 2 }
+    const state: GameState = { amount: 10, rate: 2, upgradeLevel: 0 }
 
     const result = tick(state, 0)
 
@@ -12,7 +12,7 @@ describe('tick', () => {
   })
 
   it('delta=N produce N×rate', () => {
-    const state: GameState = { amount: 10, rate: 2 }
+    const state: GameState = { amount: 10, rate: 2, upgradeLevel: 0 }
 
     const result = tick(state, 5)
 
@@ -20,7 +20,7 @@ describe('tick', () => {
   })
 
   it('rate=0 no produce nada, sea cual sea el delta', () => {
-    const state: GameState = { amount: 10, rate: 0 }
+    const state: GameState = { amount: 10, rate: 0, upgradeLevel: 0 }
 
     const result = tick(state, 1000)
 

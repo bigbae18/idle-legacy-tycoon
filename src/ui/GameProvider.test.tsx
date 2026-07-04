@@ -11,7 +11,7 @@ function Consumer() {
 describe('GameProvider', () => {
   it('expone el estado inicial a través de useGame', () => {
     render(
-      <GameProvider initialState={{ amount: 7, rate: 0 }}>
+      <GameProvider initialState={{ amount: 7, rate: 0, upgradeLevel: 0 }}>
         <Consumer />
       </GameProvider>,
     )
