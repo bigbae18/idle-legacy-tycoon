@@ -120,7 +120,7 @@ sin bloqueo de arquitectura: Netlify, GitHub Pages.
 | Fase | Estado | Entregable | Tests clave |
 |---|---|---|---|
 | MVP-0 | ✅ Hecho | Scaffold: Vite+React+TS+pnpm, lint/format, Vitest+RTL, CI en verde, repo en GitHub, desplegado en Cloudflare Workers | Test dummy pasa en CI; build funciona; preview público responde 200 |
-| MVP-1 | Pendiente | Motor de tick puro (`core/types.ts`, `core/tick.ts`) | delta=0 no-op; delta=N produce N×rate; rate=0 no produce nada |
+| MVP-1 | ✅ Hecho | Motor de tick puro (`core/types.ts`, `core/tick.ts`) | delta=0 no-op; delta=N produce N×rate; rate=0 no produce nada |
 | MVP-2 | Pendiente | Bucle de juego en vivo (UI mínima): `useGameLoop`, `GameProvider`, `ResourceDisplay` | Con fake timers, el estado avanza; el componente renderiza el número |
 | MVP-3 | Pendiente | Upgrades (`core/upgrades.ts`, `UpgradeList`) | Sin fondos → no-op; con fondos → descuenta y sube de nivel; el coste escala bien |
 | MVP-4 | Pendiente | Guardado local + versión de esquema (autosave por intervalo + `visibilitychange`) | Guardar/recargar reproduce el estado; JSON corrupto/vacío cae a un estado seguro; versión correcta |
