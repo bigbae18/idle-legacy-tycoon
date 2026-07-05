@@ -20,6 +20,20 @@ describe('formatNumber', () => {
     expect(formatNumber(2_300_000_000)).toBe('2.3B')
   })
 
+  it('por encima de B sigue la escala corta: T, Qa, Qi… (bug 4 del GDD §10)', () => {
+    expect(formatNumber(1e12)).toBe('1.0T')
+    expect(formatNumber(4.2e15)).toBe('4.2Qa')
+    expect(formatNumber(9e18)).toBe('9.0Qi')
+    expect(formatNumber(1.5e21)).toBe('1.5Sx')
+    expect(formatNumber(2e24)).toBe('2.0Sp')
+    expect(formatNumber(3e27)).toBe('3.0Oc')
+    expect(formatNumber(7e30)).toBe('7.0No')
+  })
+
+  it('agotada la tabla de sufijos cae a notación exponencial en vez de "1000.0No"', () => {
+    expect(formatNumber(1e33)).toBe('1.00e+33')
+  })
+
   it('trunca decimales del valor de entrada antes de formatear', () => {
     expect(formatNumber(999.9)).toBe('999')
   })

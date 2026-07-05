@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { save } from './save'
+import { clearSave, save } from './save'
 import { CURRENT_SCHEMA_VERSION, STORAGE_KEY } from './schema'
 import type { StorageAdapter } from './storageAdapter'
 import type { GameState } from '../core/types'
@@ -12,13 +12,19 @@ function createMemoryAdapter(): StorageAdapter & { data: Map<string, string> } {
     setItem: (key, value) => {
       data.set(key, value)
     },
+    removeItem: (key) => {
+      data.delete(key)
+    },
   }
 }
 
 describe('save', () => {
   it('guarda el estado con la versión de esquema actual y el timestamp del guardado', () => {
     const adapter = createMemoryAdapter()
-    const state: GameState = { currency: 42, businesses: { bayas: 2 } }
+    const state: GameState = {
+      currency: 42,
+      businesses: { bayas: { level: 2, cycleElapsedMs: 500 } },
+    }
     const now = 1_751_800_000_000
 
     save(state, adapter, now)
@@ -29,5 +35,22 @@ describe('save', () => {
     expect(parsed.schemaVersion).toBe(CURRENT_SCHEMA_VERSION)
     expect(parsed.savedAt).toBe(now)
     expect(parsed.state).toEqual(state)
+  })
+})
+
+describe('clearSave', () => {
+  it('borra el save guardado (reiniciar partida, R1)', () => {
+    const adapter = createMemoryAdapter()
+    save({ currency: 42, businesses: {} }, adapter)
+
+    clearSave(adapter)
+
+    expect(adapter.data.has(STORAGE_KEY)).toBe(false)
+  })
+
+  it('sin save previo no revienta', () => {
+    const adapter = createMemoryAdapter()
+
+    expect(() => clearSave(adapter)).not.toThrow()
   })
 })

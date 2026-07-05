@@ -13,15 +13,27 @@ function createMemoryAdapter(): StorageAdapter & { data: Map<string, string> } {
     setItem: (key, value) => {
       data.set(key, value)
     },
+    removeItem: (key) => {
+      data.delete(key)
+    },
   }
 }
 
-const FALLBACK: GameState = { currency: 0, businesses: { bayas: 1 } }
+const FALLBACK: GameState = {
+  currency: 0,
+  businesses: { bayas: { level: 1, cycleElapsedMs: null } },
+}
 
 describe('load', () => {
-  it('reproduce el estado guardado previamente', () => {
+  it('reproduce el estado guardado previamente, incluido el progreso de ciclo', () => {
     const adapter = createMemoryAdapter()
-    const state: GameState = { currency: 99, businesses: { bayas: 4, hoguera: 2 } }
+    const state: GameState = {
+      currency: 99,
+      businesses: {
+        bayas: { level: 4, cycleElapsedMs: 750 },
+        hoguera: { level: 2, cycleElapsedMs: null },
+      },
+    }
     save(state, adapter)
 
     const result = load(adapter, FALLBACK)
@@ -57,7 +69,7 @@ describe('load', () => {
 
   it('state:null cae al estado de respaldo en vez de reventar (bug 1 del GDD §10)', () => {
     const adapter = createMemoryAdapter()
-    adapter.setItem(STORAGE_KEY, JSON.stringify({ schemaVersion: 2, savedAt: 1, state: null }))
+    adapter.setItem(STORAGE_KEY, JSON.stringify({ schemaVersion: 3, savedAt: 1, state: null }))
 
     const result = load(adapter, FALLBACK)
 
@@ -68,12 +80,29 @@ describe('load', () => {
     const adapter = createMemoryAdapter()
     adapter.setItem(
       STORAGE_KEY,
-      JSON.stringify({ schemaVersion: 2, savedAt: 1, state: { currency: NaN, businesses: {} } }),
+      JSON.stringify({ schemaVersion: 3, savedAt: 1, state: { currency: NaN, businesses: {} } }),
     )
 
     const result = load(adapter, FALLBACK)
 
     expect(result).toEqual(FALLBACK)
+  })
+
+  it('un save v2 (R0) se migra en vez de perderse', () => {
+    const adapter = createMemoryAdapter()
+    adapter.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        schemaVersion: 2,
+        savedAt: 1,
+        state: { currency: 42, businesses: { bayas: 3 } },
+      }),
+    )
+
+    const result = load(adapter, FALLBACK)
+
+    expect(result.currency).toBe(42)
+    expect(result.businesses.bayas).toEqual({ level: 3, cycleElapsedMs: null })
   })
 
   it('un save v1 antiguo se migra en vez de perderse', () => {
@@ -86,6 +115,6 @@ describe('load', () => {
     const result = load(adapter, FALLBACK)
 
     expect(result.currency).toBe(500)
-    expect(result.businesses.bayas).toBe(6)
+    expect(result.businesses.bayas).toEqual({ level: 6, cycleElapsedMs: null })
   })
 })

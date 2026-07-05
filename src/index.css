@@ -4,11 +4,13 @@
   color-scheme: light dark;
   --color-bg: #14161c;
   --color-surface: #1f232c;
+  --color-surface-raised: #272c38;
   --color-text: #f2f0e6;
   --color-text-muted: #a9a6b0;
   --color-accent: #c9a24b;
   --color-accent-hover: #dcb862;
   --color-disabled: #3a3d47;
+  --color-danger: #c96a4b;
 }
 
 * {
@@ -19,7 +21,6 @@ body {
   margin: 0;
   min-height: 100vh;
   display: flex;
-  align-items: center;
   justify-content: center;
   background: var(--color-bg);
   color: var(--color-text);
@@ -30,13 +31,16 @@ body {
     sans-serif;
 }
 
+/* Layout mobile-first de una columna (GDD §8): máx. ~480px centrado en escritorio. */
 .app {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1.5rem;
-  padding: 2rem;
+  padding: 2rem 1rem 3rem;
   text-align: center;
+  width: 100%;
+  max-width: 480px;
 }
 
 .app h1 {
@@ -50,10 +54,10 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  padding: 2rem 3rem;
+  padding: 1.5rem;
   border-radius: 12px;
   background: var(--color-surface);
-  min-width: 280px;
+  width: 100%;
 }
 
 .resource-display {
@@ -72,6 +76,31 @@ body {
   text-transform: uppercase;
 }
 
+.multiplier-selector {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.multiplier-option {
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--color-disabled);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.multiplier-option[aria-pressed='true'] {
+  border-color: var(--color-accent);
+  color: var(--color-bg);
+  background: var(--color-accent);
+}
+
 .business-list {
   list-style: none;
   margin: 0;
@@ -82,18 +111,25 @@ body {
   width: 100%;
 }
 
-.business-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.business-info {
+.business-card {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 10px;
+  background: var(--color-surface-raised);
   text-align: left;
+}
+
+.business-card--locked {
+  opacity: 0.75;
+}
+
+.business-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .business-name {
@@ -103,13 +139,74 @@ body {
 .business-level {
   color: var(--color-text-muted);
   font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.business-yield {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.cycle-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-disabled);
+  overflow: hidden;
+}
+
+.cycle-fill {
+  height: 100%;
+  background: var(--color-accent);
+  transition: width 0.1s linear;
+}
+
+.business-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.business-locked {
+  flex: 1;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.tap-button {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--color-accent);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.tap-button:hover:not(:disabled) {
+  color: var(--color-bg);
+  background: var(--color-accent);
+}
+
+.tap-button:disabled {
+  border-color: var(--color-disabled);
+  color: var(--color-text-muted);
+  cursor: default;
 }
 
 .buy-button {
-  padding: 0.6rem 1.2rem;
+  flex: 1;
+  padding: 0.6rem 1rem;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--color-bg);
   background: var(--color-accent);
@@ -125,4 +222,68 @@ body {
   background: var(--color-disabled);
   color: var(--color-text-muted);
   cursor: not-allowed;
+}
+
+.business-milestone {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+.reset-button {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-disabled);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.reset-button:hover {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.reset-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.reset-warning {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.reset-confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.reset-confirm-yes {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-danger);
+  cursor: pointer;
+}
+
+.reset-confirm-no {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-disabled);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  background: transparent;
+  cursor: pointer;
 }

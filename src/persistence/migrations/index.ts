@@ -1,6 +1,5 @@
-import { createInitialState } from '../../core/businesses'
 import { PREHISTORIA } from '../../core/data/prehistoria'
-import type { GameState } from '../../core/types'
+import type { BusinessState, GameState } from '../../core/types'
 import { CURRENT_SCHEMA_VERSION, type SaveFile } from '../schema'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -16,19 +15,7 @@ function isLevel(value: unknown): value is number {
   return typeof value === 'number' && Number.isInteger(value) && value >= 0
 }
 
-function validateStateV2(value: unknown): GameState | null {
-  if (!isRecord(value)) return null
-  if (!isFiniteNonNegative(value.currency)) return null
-  if (!isRecord(value.businesses)) return null
-
-  const businesses: Record<string, number> = {}
-  for (const [id, level] of Object.entries(value.businesses)) {
-    if (!isLevel(level)) return null
-    businesses[id] = level
-  }
-
-  return { currency: value.currency, businesses }
-}
+// ── v1 (MVP-4): un solo recurso, una sola mejora, rate derivado persistido ──────────
 
 interface StateV1 {
   amount: number
@@ -43,29 +30,94 @@ function validateStateV1(value: unknown): StateV1 | null {
   return { amount: value.amount, upgradeLevel: value.upgradeLevel }
 }
 
-/** v1 (mejora única de MVP-3) → v2: amount→currency, upgradeLevel→niveles extra de bayas sobre el nivel 1 gratis. */
-function migrateV1ToV2(stateV1: StateV1, now: number): SaveFile {
-  const state = createInitialState(PREHISTORIA)
-  state.currency = stateV1.amount
-  state.businesses.bayas += stateV1.upgradeLevel
-  return { schemaVersion: CURRENT_SCHEMA_VERSION, savedAt: now, state }
+// ── v2 (R0): multi-negocio con niveles planos, sin estado de ciclo ──────────────────
+
+interface StateV2 {
+  currency: number
+  businesses: Record<string, number>
+}
+
+function validateStateV2(value: unknown): StateV2 | null {
+  if (!isRecord(value)) return null
+  if (!isFiniteNonNegative(value.currency)) return null
+  if (!isRecord(value.businesses)) return null
+
+  const businesses: Record<string, number> = {}
+  for (const [id, level] of Object.entries(value.businesses)) {
+    if (!isLevel(level)) return null
+    businesses[id] = level
+  }
+
+  return { currency: value.currency, businesses }
+}
+
+/** v1 → v2: amount→currency, upgradeLevel→niveles extra de bayas sobre el nivel 1 gratis. */
+function migrateV1ToV2(stateV1: StateV1): StateV2 {
+  const businesses: Record<string, number> = {}
+  for (const [index, business] of PREHISTORIA.entries()) {
+    businesses[business.id] = index === 0 ? 1 : 0
+  }
+  businesses.bayas += stateV1.upgradeLevel
+  return { currency: stateV1.amount, businesses }
+}
+
+// ── v3 (R1): niveles + progreso del ciclo en curso por negocio ──────────────────────
+
+function validateStateV3(value: unknown): GameState | null {
+  if (!isRecord(value)) return null
+  if (!isFiniteNonNegative(value.currency)) return null
+  if (!isRecord(value.businesses)) return null
+
+  const businesses: Record<string, BusinessState> = {}
+  for (const [id, entry] of Object.entries(value.businesses)) {
+    if (!isRecord(entry)) return null
+    if (!isLevel(entry.level)) return null
+    // campo ausente = negocio en reposo (defaultable sin riesgo); presente pero roto = envenenado
+    const cycleElapsedMs = entry.cycleElapsedMs ?? null
+    if (cycleElapsedMs !== null && !isFiniteNonNegative(cycleElapsedMs)) return null
+    businesses[id] = { level: entry.level, cycleElapsedMs }
+  }
+
+  return { currency: value.currency, businesses }
+}
+
+/** v2 → v3: cada nivel plano pasa a {level, cycleElapsedMs: null} (todos en reposo). */
+function migrateV2ToV3(stateV2: StateV2): GameState {
+  const businesses: Record<string, BusinessState> = {}
+  for (const [id, level] of Object.entries(stateV2.businesses)) {
+    businesses[id] = { level, cycleElapsedMs: null }
+  }
+  return { currency: stateV2.currency, businesses }
 }
 
 /**
- * Lleva cualquier save conocido a la versión actual, validando cada forma por el camino.
- * Devuelve null si el save es irrecuperable (versión desconocida o datos envenenados):
- * el llamante decide el fallback. Pura: `now` se inyecta para que sea testeable.
+ * Lleva cualquier save conocido a la versión actual, validando cada forma por el camino
+ * y encadenando migraciones (v1→v2→v3). Devuelve null si el save es irrecuperable
+ * (versión desconocida o datos envenenados): el llamante decide el fallback.
+ * Pura: `now` se inyecta para que sea testeable.
  */
 export function migrateToCurrent(parsed: unknown, now: number): SaveFile | null {
   if (!isRecord(parsed)) return null
 
   if (parsed.schemaVersion === 1) {
     const stateV1 = validateStateV1(parsed.state)
-    return stateV1 ? migrateV1ToV2(stateV1, now) : null
+    if (!stateV1) return null
+    return {
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      savedAt: now,
+      state: migrateV2ToV3(migrateV1ToV2(stateV1)),
+    }
+  }
+
+  if (parsed.schemaVersion === 2) {
+    const stateV2 = validateStateV2(parsed.state)
+    if (!stateV2) return null
+    const savedAt = isFiniteNonNegative(parsed.savedAt) ? parsed.savedAt : now
+    return { schemaVersion: CURRENT_SCHEMA_VERSION, savedAt, state: migrateV2ToV3(stateV2) }
   }
 
   if (parsed.schemaVersion === CURRENT_SCHEMA_VERSION) {
-    const state = validateStateV2(parsed.state)
+    const state = validateStateV3(parsed.state)
     if (!state) return null
     const savedAt = isFiniteNonNegative(parsed.savedAt) ? parsed.savedAt : now
     return { schemaVersion: CURRENT_SCHEMA_VERSION, savedAt, state }

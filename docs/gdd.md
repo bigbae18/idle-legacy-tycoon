@@ -65,7 +65,8 @@ ciclo a costa de más tiempo de ciclo". Subir de nivel debe poder mejorar **tant
 tiempo de recolecta** (los hitos no son solo ×2 de producción: algunos reducen ciclo). Objetivo de
 balance explícito: **a largo plazo debe compensar invertir en los negocios lentos y caros**, porque
 dan más beneficio "al momento" — la estrategia óptima madura hacia los negocios grandes, no se queda
-en spamear el primero.
+en spamear el primero. *(Concretado en R1: hitos 10/50/200 = producción ×2; hitos 25/100 = ciclo a
+la mitad — catálogo en `core/data/milestones.ts`, ver decisiones R1 en §11.)*
 
 Objetivos de ritmo (a validar en R8): primera compra <15 s · primer agente ≈ 5 min · Prehistoria
 completa en el primer run ≈ 60-90 min de juego activo.
@@ -199,9 +200,10 @@ i18n (catálogo de textos separado, sin literales en componentes).
 
 ## 10. Bugs y deudas del código actual (detectados 2026-07-05)
 
-> **Estado (R0, 2026-07-05):** bugs **1, 2, 3 (cap online) y 5 corregidos** — validación estricta con
-> migración v2, `rate` eliminado del save, tope de 60s por tick y `pagehide` en el autosave. El tramo
-> offline del bug 3 se cierra en R2; el bug 4 (`formatNumber`) queda para R1.
+> **Estado (R1, 2026-07-05):** bugs **1, 2, 3 (cap online), 4 y 5 corregidos**. R0: validación
+> estricta con migración v2, `rate` eliminado del save, tope de 60s por tick y `pagehide` en el
+> autosave. R1: `formatNumber` ampliado (escala corta hasta <1e33 + notación exponencial). El tramo
+> offline del bug 3 se cierra en R2.
 
 1. **`persistence/load.ts` — validación rota por `typeof null === 'object'`:** un save con
    `state: null` pasa el guard `isSaveFileShape` y revienta en runtime. Además no valida los campos
@@ -227,7 +229,7 @@ Cada fase = una sesión TDD independiente (rojo → verde → refactor), cerrada
 | Fase | Estado | Entregable | Notas |
 |---|---|---|---|
 | **R0** | ✅ Hecho (2026-07-05) | Fundaciones: tipos nuevos (`GameState` multi-negocio), catálogo `core/data/prehistoria.ts`, migración save v2, fixes bugs 1/2/3(cap)/5 | La base de todo; el save viejo migra o cae a estado inicial limpio |
-| **R1** | Pendiente | Negocios completos: ciclos activados por tap, niveles, hitos (producción y ciclo), compra ×1/×10/×máx, cards con barra de ciclo, `formatNumber` ampliado, **botón "reiniciar partida" con confirmación** | Primera versión que ya "se siente juego"; el reinicio lo pidió el usuario tras R0 |
+| **R1** | ✅ Hecho (2026-07-05) | Negocios completos: ciclos activados por tap, niveles, hitos (producción y ciclo), compra ×1/×10/×máx, cards con barra de ciclo, `formatNumber` ampliado, **botón "reiniciar partida" con confirmación** | Primera versión que ya "se siente juego"; el reinicio lo pidió el usuario tras R0 |
 | **R2** | Pendiente | Ganancias offline generosas + modal de retorno | Cierra del todo el bug 3 |
 | **R3** | Pendiente | Misiones (plantillas + 3 slots) y Renombre con desbloqueos | |
 | **R4** | Pendiente | Agentes: obtención por misiones, automatización, rangos, pestaña Colección | |
@@ -250,6 +252,35 @@ Cada fase = una sesión TDD independiente (rojo → verde → refactor), cerrada
   derivado, bug 2). Un save irrecuperable (envenenado/versión desconocida) cae al estado inicial limpio.
 - **Ids del estado que ya no existen en el catálogo** se conservan en el save pero se ignoran en la
   producción — retirar un negocio en un rebalanceo no envenena saves.
+
+### Decisiones de implementación anotadas durante R1 (2026-07-05)
+
+- **Save v3:** el progreso del ciclo es estado fuente → `businesses` pasa de niveles planos a
+  `{ level, cycleElapsedMs | null }` (`schemaVersion: 3`; migración v2→v3 y cadena v1→v2→v3,
+  ambas verificadas en vivo con saves reales de desarrollo). El ciclo en curso se conserva al
+  recargar, pero no avanza con la pestaña cerrada — sin automatización no hay cobro offline
+  (R2 revisará ese flujo).
+- **Cobro automático al completar:** el tap solo lanza el ciclo; al llenarse la barra se cobra
+  automáticamente y el negocio vuelve a reposo (modelo AdVenture Capitalist). Nada se relanza
+  solo hasta los agentes (R4) — la producción continua provisional de R0 queda eliminada
+  (`productionPerMs` ya no existe).
+- **Hitos concretos** (en datos, `core/data/milestones.ts`): 10 producción ×2 · 25 ciclo ÷2 ·
+  50 producción ×2 · 100 ciclo ÷2 · 200 producción ×2. Compartidos por todos los negocios;
+  tuneables en R8.
+- **Compra:** ×10 es todo-o-nada (sin fondos para el lote completo, botón deshabilitado);
+  ×máx compra el máximo asequible (si es 0, muestra el coste de 1 nivel deshabilitado). El
+  selector es preferencia de sesión (no se persiste) y va **sin gating** en R1 — el desbloqueo
+  de ×10/×máx por Renombre 3 (§4) se aplicará cuando exista el Renombre (R3).
+- **`formatNumber`:** escala corta K/M/B/T/Qa/Qi/Sx/Sp/Oc/No (hasta <1e33) y por encima
+  notación exponencial — nunca más "1000.0B" ni su equivalente futuro.
+- **Reiniciar partida:** confirmación inline en dos pasos (sin `window.confirm`, testeable);
+  borra el save (`clearSave`) y vuelve al estado inicial.
+- **Card a nivel 0:** muestra la vista previa del nivel 1 (producción/ciclo) con la acción
+  "Desbloquear"; el botón de tap no aparece hasta desbloquear.
+- **Deuda observada (fuera de alcance de R1):** varias pestañas abiertas a la vez compiten por
+  el mismo save (autosave last-writer-wins) — visto durante la verificación con pestañas viejas
+  del preview en el mismo origen. Es la norma del género (single-player, single-tab); si algún
+  día molesta, se detecta con eventos `storage` o un lock de pestaña. Anotado, no planificado.
 
 ## 12. Decisiones abiertas y decididas (revisión 2026-07-05 con el usuario)
 

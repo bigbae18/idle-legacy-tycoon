@@ -6,3 +6,8 @@ export function save(state: GameState, adapter: StorageAdapter, now = Date.now()
   const saveFile: SaveFile = { schemaVersion: CURRENT_SCHEMA_VERSION, savedAt: now, state }
   adapter.setItem(STORAGE_KEY, JSON.stringify(saveFile))
 }
+
+/** Borra el save por completo (botón "reiniciar partida", R1). */
+export function clearSave(adapter: StorageAdapter): void {
+  adapter.removeItem(STORAGE_KEY)
+}

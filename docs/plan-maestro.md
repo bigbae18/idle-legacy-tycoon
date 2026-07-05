@@ -201,5 +201,14 @@ vivo con el save v1 de desarrollo: 3M/nivel 67 migró limpio) y corregidos los b
 GDD §10. Suite en 54 tests, lint/typecheck/build en verde, jugabilidad comprobada en preview
 (producción derivada exacta: 35/s con 68 bayas + 1 hoguera).
 
-**Siguiente paso: fase R1 del GDD** (ciclos manuales con barra de progreso, hitos ×2, compra
-×1/×10/×máx, cards de negocio, `formatNumber` ampliado — bug 4).
+**Fase R1 del GDD: ✅ completa (2026-07-05)** — negocios completos: ciclos activados por tap con
+barra de progreso (la producción continua provisional de R0 desaparece), hitos a nivel
+10/25/50/100/200 alternando producción ×2 y ciclo a la mitad, compra ×1/×10/×máx, cards de negocio,
+`formatNumber` ampliado más allá de B (bug 4) y botón "reiniciar partida" con confirmación en dos
+pasos. Save a `schemaVersion: 3` (progreso de ciclo por negocio) con la migración v2→v3 verificada
+en vivo. Suite en 106 tests, lint/typecheck/build en verde, y jugabilidad verificada en el preview
+aislado (tap→ciclo→cobro, compras con hitos aplicándose en vivo, desbloqueo, reinicio). Decisiones
+de implementación anotadas en el GDD §11.
+
+**Siguiente paso: fase R2 del GDD** (ganancias offline generosas + modal de retorno — cierra del
+todo el bug 3 usando el `savedAt` que el save v2 ya dejó preparado).
