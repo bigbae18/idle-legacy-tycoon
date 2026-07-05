@@ -1,0 +1,221 @@
+# GDD — Idle Legacy Tycoon (diseño v1, 2026-07-05)
+
+> **Fuente de verdad del diseño de juego.** Sustituye las fases placeholder MVP-5..11 de
+> [`plan-maestro.md`](plan-maestro.md) por el roadmap real (§11). Se apoya en la visión del usuario
+> ([`vision-diseno-mecanicas.md`](vision-diseno-mecanicas.md)) y en los hallazgos verificados de
+> [`investigaciones-recuperadas-2026-07-04.md`](investigaciones-recuperadas-2026-07-04.md).
+> Los números concretos son **valores de arranque para tunear**, no balance final (§11, fase R8) —
+> lección verificada: el buen ritmo es balanceo iterativo, no una fórmula aplicada una vez.
+
+## 1. Pilares de diseño
+
+1. **Progresión siempre visible.** El jugador nunca está a más de ~5 minutos de la siguiente
+   recompensa perceptible (compra, hito, misión, desbloqueo). Es la regla anti-"AdVenture Ages"
+   (la queja del usuario con esa referencia: se vuelve difícil muy rápido).
+2. **El renacer propulsa, no castiga.** Cada reset te deja objetivamente mejor y el juego te dice
+   cuándo conviene (indicador de ganancia pendiente, banda verificada +50–200%). Renacer es el
+   clímax del bucle, no una derrota.
+3. **Encanto propio.** Historia real de la humanidad con tono cálido y humor ligero; todos los
+   assets son propios (SVG/CSS hechos en el repo), sin terceros. El arte final lo aporta la pareja;
+   los placeholders ya deben tener dirección de arte, no ser grises.
+4. **Números en datos, no en código.** Todo el balance vive en catálogos (`src/core/data/`)
+   tuneables sin tocar lógica, porque el balance se itera muchas veces.
+
+## 2. Las cuatro capas de progresión (mapa del juego)
+
+| Capa | Horizonte | Qué hace el jugador | Qué siente |
+|---|---|---|---|
+| **Negocios** | minutos | Lanza ciclos, compra niveles, alcanza hitos ×2 | "Los números crecen ya" |
+| **Misiones → Renombre** | horas | Completa misiones, sube nivel de cuenta, desbloquea sistemas | "El juego se va abriendo" |
+| **Eras** | días | Completa una era y avanza a la siguiente (checkpoint/región) | "He cambiado de mundo" |
+| **Renacer → Legado** | semanas | Resetea todo a cambio de Legado y su árbol permanente | "Empiezo de nuevo pero soy más fuerte" |
+
+Transversal a todo: la **colección** (agentes + reliquias), que persiste siempre.
+
+## 3. Negocios (economía dentro de una era)
+
+Cada era tiene **una moneda propia** y **5 negocios** que la producen.
+
+- **Ciclo de producción:** cada negocio produce por ciclos con duración fija (barra de progreso).
+  Al principio el ciclo se lanza **manualmente** (tap) — referencia AdVenture Ages que pidió el
+  usuario; cuando su **agente** se consigue (§5), el negocio queda **automatizado** (el ciclo se
+  reinicia solo). El tap manual sigue disponible como impulso (ver árbol del Legado).
+- **Niveles:** comprar niveles sube la producción por ciclo de forma lineal.
+  `coste(n) = base × crecimiento^n` (n = nivel actual). Compra ×1 / ×10 / ×máx.
+- **Hitos:** a nivel **10 / 25 / 50 / 100 / 200**, la producción del negocio se **×2**. Son los
+  picos de dopamina de la capa corta; se marcan visualmente en la card ("próximo hito: 25").
+
+Catálogo de la **Era 1 — Prehistoria** (moneda: **Sustento**):
+
+| Negocio | Coste base | Crecimiento | Ciclo | Producción base/ciclo | Agente que lo automatiza |
+|---|---|---|---|---|---|
+| Recolección de bayas | 4 *(nivel 1 gratis al empezar)* | 1,09 | 2 s | 1 | Australopithecus |
+| Hoguera | 60 | 1,12 | 6 s | 6 | Homo erectus *(dominó el fuego)* |
+| Caza mayor | 900 | 1,14 | 15 s | 50 | Neandertal |
+| Taller de sílex | 14.000 | 1,17 | 40 s | 550 | Homo habilis *(el de las herramientas)* |
+| Pinturas rupestres | 220.000 | 1,20 | 100 s | 7.500 | Homo sapiens *(el arte simbólico)* |
+
+Regla anti-muro que debe sobrevivir a cualquier rebalanceo: entre negocios consecutivos el coste
+escala ~×15 y la producción ~×8-12 → **siempre hay una compra "grande" alcanzable en el horizonte**
+y ningún negocio deja de ser relevante de golpe.
+
+Objetivos de ritmo (a validar en R8): primera compra <15 s · primer agente ≈ 5 min · Prehistoria
+completa en el primer run ≈ 60-90 min de juego activo.
+
+## 4. Misiones y Renombre (nivel de usuario)
+
+Patrón verificado en el género (Idle Bank Tycoon: reputación → nivel de cuenta → desbloqueos).
+
+- **3 slots de misiones activas** (4º slot vía Legado). Se generan de **plantillas parametrizadas
+  por el estado actual** para que siempre sean alcanzables: "Alcanza X Sustento", "Compra N niveles
+  de Caza mayor", "Completa N ciclos manuales", "Automatiza N negocios", "Gana X en total".
+- **Recompensas:** moneda de la era **escalada a la producción actual** (misma filosofía que el
+  usuario exige a los rewarded ads: recompensa acorde al nivel, nunca ridícula) y, en misiones
+  señaladas, **agentes/vestigios** (§5).
+- **XP → Renombre**, el nivel de cuenta transversal. **El Renombre no se resetea nunca** (ni al
+  renacer). Desbloquea sistemas, no potencia bruta:
+
+| Renombre | Desbloqueo |
+|---|---|
+| 2 | Automatización (aparece el primer agente en la cadena de misiones) |
+| 3 | Compra ×10 / ×máx |
+| 4 | Ganancias offline (§7) |
+| 5 | Pestaña Colección |
+| 6 | Requisito parcial para el avance de era |
+| 8 | **Renacer** (§6) |
+| 10+ | Reservado: gacha v2, eventos, cosméticos |
+
+Regla: el Renombre **abre puertas**; nunca es un muro que pare la economía (los muros son la queja
+del usuario con Ages).
+
+## 5. Colección: agentes y reliquias (persiste siempre)
+
+- **Agentes** (5 por era; en Prehistoria, los homínidos de la tabla §3): cada uno **automatiza su
+  negocio** y da un **bono pasivo** a ese negocio de +25% por rango. **Rangos I-V**: los duplicados
+  /"vestigios" ganados en misiones suben el rango (modelo de datos ya preparado para que el gacha
+  ligero de la v2 encaje sin rediseñar — pero lejos del extremo grindy documentado de Idle Heroes).
+- **Obtención en el MVP: determinista** (cadenas de misiones y objetivos de era), nada de azar
+  todavía. El gacha es capa v2 sobre el mismo modelo.
+- **Reliquias** (1 por era, al completarla): artefacto coleccionable con lore (Prehistoria: *el
+  fuego domado*; Egipto: *el papiro*; Roma: *el acueducto*) que da **+10% de producción global
+  permanente** cada una.
+- Agentes y reliquias **sobreviven al renacer** — son la mitad del "empiezo mejor que antes".
+
+## 6. Eras (checkpoints/regiones) y Renacer (Legado)
+
+### Avance de era (dentro de un run)
+
+- Una era se completa con: **los 5 negocios comprados** + **acumulado total de la era** (Prehistoria:
+  2M de Sustento) + **cadena de misiones de era** completada ("El gran salto").
+- Al avanzar: era nueva desde cero (moneda y negocios propios) con un pequeño capital inicial, se
+  otorga la **reliquia** de la era completada, y la era anterior queda **consolidada** (no sigue
+  produciendo; su total ganado cuenta para el Legado). Cambio visual completo de paleta y motivo (§8).
+- **Lanzamiento con 3 eras:** Prehistoria → Antiguo Egipto → Roma. Escala de moneda ~×1.000 entre
+  eras. (Edad Media en adelante = contenido post-lanzamiento.)
+
+### Renacer (prestigio) — la mecánica que pidió el usuario
+
+- **Disponible** desde Renombre 8 y habiendo alcanzado la Era 2 — el primer renacer llega pronto a
+  propósito, para enseñar que renacer es bueno.
+- **Fórmula** (amortiguación por raíz cuadrada, regla verificada con fuente primaria GDC):
+  `legadoTotal(vidaAcumulada) = floor(1,5 × √(gananciasDeTodaLaVida / 1e6))`
+  `gananciaPendiente = legadoTotal − legadoYaObtenido`
+  (`gananciasDeTodaLaVida` = suma de todas las monedas de era ganadas, normalizadas a escala de
+  Era 1, en todos los runs.)
+- **UI:** el botón de renacer siempre muestra "**Renacer: +X Legado (+Y%)**". Cuando la ganancia
+  pendiente supera **+100%** del Legado actual, el botón pasa a estado "recomendado" (brillo). Banda
+  de referencia verificada: +50% a +200%.
+- **Cada punto de Legado da +2% de producción global permanente** (por Legado *ganado
+  históricamente*, así que gastarlo en el árbol no te debilita) **y además es la moneda del Árbol
+  del Legado**:
+
+**Árbol del Legado** (~12-16 nodos en 3 ramas; coste 1-10 puntos por nodo):
+- *Rama Impulso:* +50% recompensas de misión · tap manual ×2 · −10% coste de niveles · arranque con
+  capital inicial tras renacer.
+- *Rama Automatización:* automatización activa desde el minuto 0 tras renacer · ciclos −20% de
+  duración · 4º slot de misiones.
+- *Rama Memoria:* empezar el run con la Hoguera desbloqueada · +8h de tope offline · conservar el
+  10% del Sustento al renacer · desbloqueo directo de la Era 2 (nodo caro, final de rama).
+
+- **Qué resetea el renacer:** eras, negocios, niveles, monedas, misiones en curso.
+  **Qué persiste:** Renombre, agentes, reliquias, Legado y su árbol, ajustes.
+
+## 7. Ganancias offline
+
+- Calculadas por **timestamp absoluto** (regla ya escrita en el plan maestro): delta negativo → 0;
+  tope configurable.
+- **Generosas:** 100% de la producción automatizada, tope base **8 h** ampliable a 24 h (árbol del
+  Legado). Evidencia verificada: el cap de 2 h de Egg Inc. está documentado como error que provoca
+  abandono.
+- **Modal de retorno** con desglose ("Mientras no estabas: +X Sustento en Yh Zm") — es además el
+  hueco natural del futuro rewarded ad "×2" (stub en fase de monetización).
+- El bucle online capa el delta de un tick a **60 s**: todo lo que pase de ahí se trata por el flujo
+  offline (evita el doble sistema de cobro — bug 3 de §10).
+
+## 8. Dirección visual (assets propios, cero terceros)
+
+- **Sistema de tokens CSS por era** (variables sobre el `index.css` actual): la era activa define
+  paleta y motivo. Prehistoria: ocres/ámbar/carbón sobre fondo noche. Egipto: arena/oro/lapislázuli.
+  Roma: mármol/rojo/bronce.
+- **Iconografía SVG propia** hecha en el repo (`src/ui/assets/`): estilo flat geométrico, 2-3
+  colores de la paleta de la era, rejilla 24/48 px. Un emblema por negocio, agente y reliquia.
+  Son placeholders **con dirección de arte** — la pareja los sustituye 1:1 sin tocar lógica.
+- **Layout mobile-first** de una columna (máx. ~480 px centrado en escritorio): barra superior fija
+  (Sustento con count-up, Renombre, Legado) · lista de negocios como cards (emblema, nivel, barra de
+  ciclo, botón de compra, marcador de hito) · navegación inferior por pestañas: **Negocios ·
+  Misiones · Colección · Legado**.
+- **Juice** (CSS, respetando `prefers-reduced-motion`): count-up del contador, "+N" flotante al
+  cobrar ciclo, flash al alcanzar hito, pulso en botón comprable, transición de paleta al cambiar de
+  era, confeti sobrio al renacer.
+- Sonido: fuera del MVP (lo aporta la pareja con el arte final).
+
+## 9. Historia y tono
+
+Lore ligero, no narrativa pesada: cada era abre con 2-3 frases con humor cálido ("Alguien ha
+descubierto que la carne sabe mejor caliente. Eres oficialmente la persona más lista del valle.").
+Cada agente y reliquia lleva 1-2 líneas de ficha en la Colección — dato histórico real + chiste
+suave. Textos en español primero (mercado de validación), arquitectura de strings preparada para
+i18n (catálogo de textos separado, sin literales en componentes).
+
+## 10. Bugs y deudas del código actual (detectados 2026-07-05)
+
+1. **`persistence/load.ts` — validación rota por `typeof null === 'object'`:** un save con
+   `state: null` pasa el guard `isSaveFileShape` y revienta en runtime. Además no valida los campos
+   internos (`amount`/`rate`/`upgradeLevel` pueden faltar o no ser números) → `NaN` se propaga por
+   el tick **y el autosave lo persiste** → save envenenado permanente. *(Se corrige en R0.)*
+2. **`rate` (estado derivado) persistido en el save:** `rate` se deriva de `upgradeLevel`, pero se
+   guarda; cualquier rebalanceo dejará los saves viejos con un `rate` obsoleto para siempre. El save
+   debe guardar solo estado fuente (niveles) y derivar la producción al cargar → **migración a
+   `schemaVersion: 2`** (primera migración real, era el MVP-7). *(R0.)*
+3. **`tick` sin tope de delta:** con la pestaña suspendida horas, al volver se cobra todo de golpe
+   sin límite — duplica (y contradice) el sistema offline con tope planificado. Cap de 60 s por tick
+   online; el resto va por el flujo offline. *(R0 el cap, R2 el flujo offline.)*
+4. **`formatNumber` no tiene sufijo por encima de B:** 1e12 se muestra como "1000.0B". Ampliar
+   escala (T, Qa, …) — con 3 eras y ×1.000 entre eras se alcanza. *(R1.)*
+5. **Autosave sin `pagehide`:** `visibilitychange→hidden` cubre la mayoría de cierres modernos, pero
+   `pagehide` es el cinturón de seguridad estándar. Menor. *(R0.)*
+
+## 11. Roadmap real (sustituye MVP-5..11 del plan maestro)
+
+Cada fase = una sesión TDD independiente (rojo → verde → refactor), cerrada con
+`pnpm lint && pnpm typecheck && pnpm test && pnpm build` + verificación en preview.
+
+| Fase | Entregable | Notas |
+|---|---|---|
+| **R0** | Fundaciones: tipos nuevos (`GameState` multi-negocio), catálogo `core/data/prehistoria.ts`, migración save v2, fixes bugs 1/2/3(cap)/5 | La base de todo; el save viejo migra o cae a estado inicial limpio |
+| **R1** | Negocios completos: ciclos manuales, niveles, hitos ×2, compra ×1/×10/×máx, cards con barra de ciclo, `formatNumber` ampliado | Primera versión que ya "se siente juego" |
+| **R2** | Ganancias offline generosas + modal de retorno | Cierra del todo el bug 3 |
+| **R3** | Misiones (plantillas + 3 slots) y Renombre con desbloqueos | |
+| **R4** | Agentes: obtención por misiones, automatización, rangos, pestaña Colección | |
+| **R5** | Avance de eras: Egipto y Roma (catálogos), reliquias, consolidación de era | |
+| **R6** | **Renacer**: fórmula de Legado, botón con ganancia pendiente y estado recomendado, Árbol del Legado | El corazón de la petición del usuario |
+| **R7** | Dirección visual completa: tokens por era, set SVG propio, juice, transiciones | Hasta aquí el juego usa placeholders sobrios |
+| **R8** | Pase de balance: telemetría local de tiempos (primera compra, primer agente, primera era, primer renacer) + ajuste de catálogos + QA manual | El tuning iterativo verificado como clave del género |
+| **R9** | Los antiguos MVP-8/9/11: stubs de monetización (rewarded en el modal offline, quitar-anuncios) + checklist de humo + deploy | |
+
+## 12. Decisiones abiertas (no bloquean R0-R2; decidir antes de R3-R6)
+
+1. Nombres finales: ¿"Sustento/Renombre/Legado/vestigios" o alternativas? *(Propuesta actual en este doc.)*
+2. Tono de textos: humor ligero (recomendado, §9) vs. serio-divulgativo.
+3. ¿El tap manual desaparece al automatizar o queda como "impulso" que acelera el ciclo? *(Recomendado: queda como impulso — da algo que hacer al jugador activo.)*
+4. ¿3 eras al lanzamiento son suficientes para validar retención? *(Recomendado: sí; la 4ª es contenido post-validación.)*

@@ -80,7 +80,10 @@ games/idle-legacy-tycoon/
   .github/workflows/ci.yml
   docs/
     plan-maestro.md          ← este documento
+    gdd.md                   ← diseño de juego (fuente de verdad de mecánicas y fases R0-R9)
     stack-y-distribucion.md  ← investigación de stack 2D y distribución
+    investigaciones-recuperadas-2026-07-04.md ← economía del género + App Store (síntesis manual)
+    vision-diseno-mecanicas.md ← histórico de la conversación de diseño (cerrado → gdd.md)
   src/
     core/          ← lógica pura del motor (tick, recursos, upgrades, prestigio, offline, numbers)
     persistence/   ← guardado/carga localStorage + migraciones de esquema
@@ -119,6 +122,10 @@ https://idle-legacy-tycoon.adrianpelayo-a.workers.dev (verificado, HTTP 200). Al
 sin bloqueo de arquitectura: Netlify, GitHub Pages.
 
 ## Hoja de ruta del MVP (subfases)
+
+> **⚠️ Sustituida a partir de MVP-5 (2026-07-05):** el diseño real quedó cerrado en
+> [`gdd.md`](gdd.md) y las fases MVP-5..11 de esta tabla quedan reemplazadas por las fases
+> **R0-R9 del GDD** (§11). La tabla se conserva porque MVP-0..4.5 documentan lo ya construido.
 
 | Fase | Estado | Entregable | Tests clave |
 |---|---|---|---|
@@ -160,34 +167,33 @@ colección/gacha (figuras históricas de cada era), ranking/social (dispara la n
 ver PocketBase arriba), pase de batalla, multijugador asíncrono. No se diseña nada de esto hasta
 cerrar el MVP.
 
-## Visión a largo plazo del usuario — ideas sin aterrizar (anotadas 2026-07-04)
+## Visión a largo plazo del usuario — diseño en discusión, sin cerrar
 
-Al cerrar esta sesión, el usuario adelantó que tiene en mente un juego bastante más ambicioso que el
-MVP actual, con **checkpoints/regiones** y **varios rebirths** (plural — más de una capa de
-prestigio/renacimiento, no solo el prestigio único y plano de MVP-6), además de querer **una buena
-historia**. En sus propias palabras: "tengo mucho pensado pero hay que aterrizar muchas cosas" — es
-decir, son ideas de dirección, no decisiones tomadas ni diseño a implementar todavía.
+Al cerrar el trabajo técnico de esta sesión, el usuario adelantó que quiere un juego bastante más
+ambicioso que el MVP actual (checkpoints/regiones, varios rebirths, una buena historia) y la
+conversación de diseño siguió a partir de ahí — negocios/artefactos por era, misiones que suben un
+nivel de usuario, agentes coleccionables por era, y referencias directas de género (AdVenture
+Communist/AdVenture Ages) con dos investigaciones lanzadas para fundamentarlo con datos reales.
 
-**Matiz importante a resolver en una futura sesión, no a asumir:** en la sesión recuperada tras el
-BSOD (ver `../../../docs/juego-narrativo-webgl.md` y la memoria `[[proyecto-idle-legacy-tycoon]]`),
-el propio usuario ya corrigió explícitamente que este juego **NO** es narrativo pesado — al mencionar
-"historia" se refería a lore ligero por desbloqueo (estilo *Idle Miner Tycoon*), no a una trama tipo
-*Night in the Woods*, y por eso se descartó la vía Three.js/narrativa completa. La nueva mención de
-"una buena historia" puede ser compatible con eso (lore rico y currado por región/era, no una trama
-jugable) o puede ser una ampliación real de ambición hacia algo más narrativo — **no dar nada por
-sentado; preguntar y aclarar esto explícitamente antes de diseñar checkpoints/regiones/rebirths**.
+**Todo el detalle de esta discusión (todavía sin cerrar) vive en
+[`vision-diseno-mecanicas.md`](vision-diseno-mecanicas.md) — leer ese documento entero antes de
+diseñar o implementar nada de MVP-6 en adelante.** No se repite aquí para no desincronizar dos
+fuentes de verdad.
 
-Conexión natural a explorar (sin decidir): la temática ya elegida (civilización que evoluciona por
-eras históricas) encaja de forma bastante directa con la idea de "regiones" — cada era podría ser una
-región/checkpoint desbloqueable — pero esto es una hipótesis a validar con el usuario, no un diseño
-cerrado.
+## Dónde lo dejamos (2026-07-05)
 
-## Dónde lo dejamos (2026-07-04)
+**Parte técnica: MVP-0 a MVP-4.5 completos, verificados y desplegados** (ver tabla de arriba) —
+bucle de tick, upgrades, guardado local con autosave, economía a un ritmo jugable, y una capa visual
+básica sin assets. CI en verde en cada paso, preview público funcionando en
+https://idle-legacy-tycoon.adrianpelayo-a.workers.dev.
 
-**MVP-0 a MVP-4.5 completos, verificados y desplegados** (ver tabla de arriba) — bucle de tick,
-upgrades, guardado local con autosave, economía a un ritmo jugable, y una capa visual básica sin
-assets. CI en verde en cada paso, preview público funcionando en
-https://idle-legacy-tycoon.adrianpelayo-a.workers.dev. **Siguiente paso técnico:** MVP-5 (ganancias
-offline por reloj real). **Antes de seguir escalando mecánicas**, conviene una conversación dedicada
-sobre la visión a largo plazo de arriba (checkpoints/regiones/rebirths/historia) para que el roadmap
-MVP-6 en adelante se diseñe con esa dirección en mente, en vez de a ciegas.
+**Parte de diseño: CERRADA en el [`gdd.md`](gdd.md) (2026-07-05).** Las dos investigaciones de la
+sesión anterior sí habían terminado en disco y están sintetizadas a mano en
+[`investigaciones-recuperadas-2026-07-04.md`](investigaciones-recuperadas-2026-07-04.md). El GDD
+define: economía de negocios por era con ciclos e hitos, misiones → Renombre, agentes/colección,
+avance de eras (Prehistoria → Egipto → Roma), **renacer con Legado + árbol permanente** (fórmula con
+amortiguación √, banda +50–200% verificada), offline generoso, dirección visual con assets SVG
+propios, **5 bugs detectados en el código actual** (GDD §10) y el roadmap real **R0-R9** (GDD §11).
+
+**Siguiente paso: implementar la fase R0 del GDD** (fundaciones: tipos multi-negocio, catálogo de
+datos, migración de save a v2, corrección de los bugs 1/2/3/5).
