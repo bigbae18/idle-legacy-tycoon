@@ -210,5 +210,11 @@ en vivo. Suite en 106 tests, lint/typecheck/build en verde, y jugabilidad verifi
 aislado (tap→ciclo→cobro, compras con hitos aplicándose en vivo, desbloqueo, reinicio). Decisiones
 de implementación anotadas en el GDD §11.
 
+**Visión ampliada post-R1 (2026-07-05), anotada sin priorizar en el [GDD §13](gdd.md):** idle
+visual como escena por era (eleva el listón de R7), más eras como pipeline de contenido en datos
+(criterio de aceptación para R5), header multi-moneda y nav inferior ampliada
+(Tiradas/Tienda/Aventura — con brainstorming dedicado pendiente), y el marco de escalabilidad del
+proyecto. No altera el orden R2-R9.
+
 **Siguiente paso: fase R2 del GDD** (ganancias offline generosas + modal de retorno — cierra del
 todo el bug 3 usando el `savedAt` que el save v2 ya dejó preparado).

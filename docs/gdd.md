@@ -305,3 +305,90 @@ Cada fase = una sesión TDD independiente (rojo → verde → refactor), cerrada
    misiones ya la usan).
 2. Qué pasa con los **agentes al renacer** (ver recomendación "álbum persiste, efecto se reobtiene"
    en §6) — cerrar en el diseño fino de R6.
+
+## 13. Visión ampliada post-R1 (2026-07-05) — anotada, NO priorizada
+
+> Entradas de diseño del usuario tras cerrar R1. Instrucción explícita: **no se implementan ahora ni
+> alteran el orden R2-R9** — se anotan para que las fases ya planificadas se construyan sabiendo qué
+> viene después ("pensar desde el principio qué construimos, por qué y con qué escalabilidad"). Los
+> puntos marcados 🧠 requieren un **brainstorming dedicado** antes de diseñarse en serio.
+
+### 13.1 Idle visual: escena por era en vez de cards
+
+- **Qué pidió:** que el juego sea visual desde el principio — un **fondo ambientado en la era
+  activa** y los negocios **representados visualmente dentro de la escena** (no como cajas), con
+  scroll vertical dentro del viewport del juego.
+- **Dónde encaja:** es la evolución natural de R7 (dirección visual), que sube de listón: de "cards
+  con emblema SVG" a **"escena de era v1"** (fondo por era + cada negocio como elemento de escena
+  con su barra de ciclo y su tap). Las cards actuales pasan a ser el placeholder funcional hasta R7.
+- **Por qué merece la pena:** la tesis de diferenciación de este juego es "arte, tono y colección"
+  (plan maestro) — la escena sirve directamente a esa tesis.
+- **Coste real:** arte por era (fondos + representación de 5 negocios × era, trabajo de la pareja).
+  Técnicamente no cambia la arquitectura: el mismo `GameState` + catálogo alimenta cualquier
+  representación; la escena es una *skin* sobre los mismos componentes presentacionales. DOM/SVG
+  por capas sobra a esta escala — sin canvas ni motor.
+- **Regla desde ya (gratis):** los componentes de UI siguen siendo presentacionales y tontos
+  (reciben datos derivados, emiten eventos) — así el cambio card→escena en R7 no toca ni core ni
+  handlers.
+
+### 13.2 Más eras: la historia como pipeline de contenido
+
+- **Qué pidió:** aprovechar que la historia real da contenido casi infinito y **nutrir el juego con
+  más épocas** desde el diseño.
+- **Dónde encaja:** el lanzamiento sigue siendo con 3 eras (decisión del §6, con su aviso de ritmo
+  para R8). Lo que cambia es el **criterio de aceptación de R5**: el sistema de eras se construye
+  contra un *catálogo de eras*, no contra 3 hardcodeadas — **añadir una era = 1 archivo de datos
+  (negocios/agentes/reliquia/textos) + 1 set de tokens/arte + 0 cambios de lógica**. Es el pilar 4
+  (números en datos) elevado a sistema completo.
+- **Cadencia post-lanzamiento (borrador):** Edad Media → Renacimiento → Era Industrial → Era
+  Moderna (→ ¿Futuro/espacio como broche?). Cada era nueva es contenido, no mecánica.
+- **Lore:** la ficha de cada agente/reliquia (dato histórico real + chiste suave, §9) es el hueco
+  natural donde "la información de la que disponemos" nutre el juego — se puede mantener un doc de
+  investigación/lore por era que la pareja y Claude alimentan sin tocar código.
+
+### 13.3 🧠 Header multi-moneda y navegación inferior ampliada
+
+- **Qué pidió:** header con **las monedas del usuario representadas visualmente** lo mejor posible,
+  y **menú inferior** con las secciones del juego: Tiradas (gacha) · juego principal · Tienda ·
+  **Aventura** (side-game dentro del juego para conseguir más recursos).
+- **Dónde encaja cada pieza:**
+  - *Header multi-moneda:* extensión directa del §8 (barra superior ya planificada con moneda de
+    era + Renombre + Legado). Con iconos SVG propios por moneda desde R7; la moneda premium se
+    suma en R9/v2. Nota: dentro de un run solo hay UNA moneda de era activa (las eras anteriores
+    consolidan, §6) — el header no acumula N monedas de era.
+  - *Tiradas:* es la pestaña del **gacha v2** (§5: obtención determinista en el MVP, gacha como
+    capa v2 sobre el mismo modelo de datos). Se le reserva el hueco en la nav; no existe en el MVP.
+  - *Tienda:* aparece con la monetización (R9: rewarded + quitar-anuncios; IAP/premium en v2).
+  - *Aventura:* **mecánica genuinamente nueva**, sin diseño — candidata a expediciones/timers/
+    mini-retos que dan recursos o vestigios. Va a "fases posteriores" (junto a ranking/social) y
+    necesita su propio pase de diseño. No condiciona R2-R9.
+- **Restricción de escalabilidad (para el brainstorming):** en móvil la nav inferior aguanta 4-5
+  slots máximo. La pregunta de diseño no es "qué pestañas añadimos" sino **qué es pestaña y qué
+  vive dentro de otra** (p. ej. Tiradas dentro de Colección; Tienda como overlay). El MVP mantiene
+  las 4 del §8 (Negocios · Misiones · Colección · Legado).
+
+### 13.4 Marco de escalabilidad (qué estamos construyendo y hasta dónde)
+
+- **Qué es este juego:** idle/tycoon web mobile-first de sesiones cortas (5-15 min activos +
+  retornos offline), con horizonte de contenido de semanas→meses vía renaceres y eras.
+- **Tres ejes de crecimiento, cada uno con su mecanismo:**
+  1. **Contenido** (eras, negocios, agentes, lore) → crece como **datos** (§13.2), coste marginal
+     bajo, es el eje principal post-lanzamiento.
+  2. **Sistemas** (misiones, gacha, aventura, eventos) → crecen como **módulos/pestañas nuevos
+     gateados por Renombre** (§4: el Renombre abre puertas) — cada sistema nuevo es una fase de
+     diseño + implementación propia, no un dato.
+  3. **Monetización/social** (tienda, ranking, cloud save) → el social es el único que exige
+     backend (PocketBase anotado en el plan maestro); todo lo demás sigue client-only.
+- **Anti-objetivo explícito:** no convertir el MVP en plataforma. Las costuras (capas core/
+  persistence/ui, catálogos en datos, Renombre como gate) ya están puestas precisamente para poder
+  crecer sin rediseñar; construir hoy más que esas costuras sería especular.
+
+### 13.5 Agenda del brainstorming pendiente (cuando el usuario quiera)
+
+1. Estructura de navegación: qué es pestaña vs. qué anida dónde (con las 7 secciones candidatas:
+   Negocios, Misiones, Colección, Legado, Tiradas, Tienda, Aventura).
+2. Diseño de la **Aventura** (side-game): bucle, recompensas, cadencia, cómo evita canibalizar el
+   bucle principal.
+3. La escena visual por era: qué se anima, qué es estático, presupuesto de arte por era realista
+   para la pareja.
+4. Cadencia de eras post-lanzamiento y hasta dónde llega la línea temporal.
