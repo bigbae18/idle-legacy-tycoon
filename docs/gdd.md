@@ -84,8 +84,14 @@ completa en el primer run ≈ 60-90 min de juego activo.
 Patrón verificado en el género (Idle Bank Tycoon: reputación → nivel de cuenta → desbloqueos).
 
 - **3 slots de misiones activas** (4º slot vía Legado). Se generan de **plantillas parametrizadas
-  por el estado actual** para que siempre sean alcanzables: "Alcanza X Sustento", "Compra N niveles
-  de Caza mayor", "Completa N ciclos manuales", "Automatiza N negocios", "Gana X en total".
+  por el estado actual** para que siempre sean alcanzables. Formatos (actualizados a la economía
+  en cadena + ampliación del usuario 2026-07-06):
+  - *Desde R3:* "Alcanza X Bayas" · "Gana X Bayas en total" · "Consigue N unidades de [negocio]" ·
+    "Ten N negocios con X unidades cada uno" · "Completa N ciclos manuales".
+  - *Con R4 (gerentes):* "Automatiza N negocios" · "Sube de rango a N gerentes" · "Acumula X de la
+    moneda de mejora de gerentes" (ver decisión abierta nº 2 del §12).
+  - *Con R5 (multi-era):* "Recolecta X [recurso de otra era]" — las misiones pueden pedir monedas
+    de épocas distintas a la activa.
 - **Recompensas:** moneda de la era **escalada a la producción actual** (misma filosofía que el
   usuario exige a los rewarded ads: recompensa acorde al nivel, nunca ridícula) y, en misiones
   señaladas, **agentes/vestigios** (§5).
@@ -363,6 +369,12 @@ Cada fase = una sesión TDD independiente (rojo → verde → refactor), cerrada
 
 1. Qué pasa con los **agentes al renacer** (ver recomendación "álbum persiste, efecto se reobtiene"
    en §6) — cerrar en el diseño fino de R6.
+2. **Cómo suben de rango los gerentes/agentes** (2026-07-06): el §5 los diseña con
+   duplicados/"vestigios" ganados en misiones; el usuario mencionó una **"moneda especial que se
+   utiliza para subir a los gerentes"** (estilo la ciencia de AdVenture Communist, que mejora sus
+   investigadores). Son compatibles (los vestigios pueden comportarse como moneda) pero hay que
+   elegir el modelo — **cerrar en el diseño fino de R4**; las plantillas de misión afectadas (§4)
+   entran también en R4.
 
 ## 13. Visión ampliada post-R1 (2026-07-05) — anotada, NO priorizada
 
@@ -400,6 +412,13 @@ Cada fase = una sesión TDD independiente (rojo → verde → refactor), cerrada
   (números en datos) elevado a sistema completo.
 - **Cadencia post-lanzamiento (borrador):** Edad Media → Renacimiento → Era Industrial → Era
   Moderna (→ ¿Futuro/espacio como broche?). Cada era nueva es contenido, no mecánica.
+- **Refinamiento del usuario (2026-07-06):** la línea principal la forman solo las **grandes
+  épocas**, manteniendo el número de eras contenido y la **cadena de producción larga** dentro de
+  cada una (la cadena es extensible por datos, §3 v2). Las épocas "ahorradas" (periodos menores o
+  intermedios) **no se pierden: se reservan como eventos especiales** post-lanzamiento, y también
+  se pueden **inventar épocas futuristas** para esos eventos. El reparto fino (qué épocas son
+  línea principal y cuáles evento) se decide al diseñar R5 y el sistema de eventos (post-MVP,
+  Renombre 10+ del §4).
 - **Lore:** la ficha de cada agente/reliquia (dato histórico real + chiste suave, §9) es el hueco
   natural donde "la información de la que disponemos" nutre el juego — se puede mantener un doc de
   investigación/lore por era que la pareja y Claude alimentan sin tocar código.
