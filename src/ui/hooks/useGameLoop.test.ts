@@ -11,21 +11,21 @@ describe('useGameLoop', () => {
     vi.useRealTimers()
   })
 
-  it('avanza el estado con el paso del tiempo', () => {
-    const { result } = renderHook(() => useGameLoop({ amount: 0, rate: 1, upgradeLevel: 0 }))
+  it('avanza el estado con el paso del tiempo (bayas nivel 1 = 1 cada 2s)', () => {
+    const { result } = renderHook(() => useGameLoop({ currency: 0, businesses: { bayas: 1 } }))
 
     act(() => {
-      vi.advanceTimersByTime(1000)
+      vi.advanceTimersByTime(2000)
     })
 
     const [state] = result.current
-    expect(state.amount).toBe(1000)
+    expect(state.currency).toBeCloseTo(1)
   })
 
   it('no avanza si no pasa tiempo', () => {
-    const { result } = renderHook(() => useGameLoop({ amount: 0, rate: 1, upgradeLevel: 0 }))
+    const { result } = renderHook(() => useGameLoop({ currency: 0, businesses: { bayas: 1 } }))
 
     const [state] = result.current
-    expect(state.amount).toBe(0)
+    expect(state.currency).toBe(0)
   })
 })

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { PREHISTORIA } from '../../core/data/prehistoria'
 import { tick } from '../../core/tick'
 import type { GameState } from '../../core/types'
 
@@ -16,7 +17,7 @@ export function useGameLoop(
       const now = Date.now()
       const deltaMs = now - lastTickAtRef.current
       lastTickAtRef.current = now
-      setState((previous) => tick(previous, deltaMs))
+      setState((previous) => tick(previous, deltaMs, PREHISTORIA))
     }, TICK_INTERVAL_MS)
 
     return () => clearInterval(intervalId)

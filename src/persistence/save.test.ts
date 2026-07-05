@@ -16,16 +16,18 @@ function createMemoryAdapter(): StorageAdapter & { data: Map<string, string> } {
 }
 
 describe('save', () => {
-  it('guarda el estado junto con la versión de esquema actual', () => {
+  it('guarda el estado con la versión de esquema actual y el timestamp del guardado', () => {
     const adapter = createMemoryAdapter()
-    const state: GameState = { amount: 42, rate: 3, upgradeLevel: 2 }
+    const state: GameState = { currency: 42, businesses: { bayas: 2 } }
+    const now = 1_751_800_000_000
 
-    save(state, adapter)
+    save(state, adapter, now)
 
     const raw = adapter.data.get(STORAGE_KEY)
     expect(raw).toBeDefined()
     const parsed = JSON.parse(raw as string)
     expect(parsed.schemaVersion).toBe(CURRENT_SCHEMA_VERSION)
+    expect(parsed.savedAt).toBe(now)
     expect(parsed.state).toEqual(state)
   })
 })

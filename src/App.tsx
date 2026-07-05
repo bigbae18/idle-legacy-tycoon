@@ -1,39 +1,44 @@
-import { upgradeCost, purchaseUpgrade } from './core/upgrades'
-import { perSecondToPerMs } from './core/numbers'
+import { businessLevel, createInitialState, levelCost, purchaseLevel } from './core/businesses'
+import { PREHISTORIA } from './core/data/prehistoria'
+import { BusinessList } from './ui/components/BusinessList/BusinessList'
 import { ResourceDisplay } from './ui/components/ResourceDisplay/ResourceDisplay'
-import { UpgradeList } from './ui/components/UpgradeList/UpgradeList'
 import { GameProvider } from './ui/GameProvider'
 import { useGame } from './ui/hooks/useGame'
 
-/** Producción base de relleno: 1/seg (no es economía final, ver docs/plan-maestro.md). */
-const INITIAL_RATE_PER_SECOND = 1
-
 function GameScreen() {
   const { state, setState } = useGame()
-  const cost = upgradeCost(state.upgradeLevel)
+
+  const rows = PREHISTORIA.map((business) => {
+    const level = businessLevel(state, business.id)
+    const cost = levelCost(business, level)
+    return {
+      id: business.id,
+      name: business.name,
+      level,
+      cost,
+      canAfford: state.currency >= cost,
+    }
+  })
+
+  const handlePurchase = (businessId: string) => {
+    const business = PREHISTORIA.find((candidate) => candidate.id === businessId)
+    if (business) {
+      setState((previous) => purchaseLevel(previous, business))
+    }
+  }
 
   return (
     <div className="game-card">
-      <ResourceDisplay amount={state.amount} />
-      <UpgradeList
-        level={state.upgradeLevel}
-        cost={cost}
-        canAfford={state.amount >= cost}
-        onPurchase={() => setState(purchaseUpgrade)}
-      />
+      <ResourceDisplay amount={state.currency} />
+      <p className="currency-label">Sustento</p>
+      <BusinessList businesses={rows} onPurchase={handlePurchase} />
     </div>
   )
 }
 
 function App() {
   return (
-    <GameProvider
-      initialState={{
-        amount: 0,
-        rate: perSecondToPerMs(INITIAL_RATE_PER_SECOND),
-        upgradeLevel: 0,
-      }}
-    >
+    <GameProvider initialState={createInitialState(PREHISTORIA)}>
       <main className="app">
         <h1>Idle Legacy Tycoon</h1>
         <GameScreen />

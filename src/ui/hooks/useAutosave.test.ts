@@ -15,7 +15,7 @@ describe('useAutosave', () => {
   })
 
   it('guarda el estado automáticamente pasado el intervalo', () => {
-    const state: GameState = { amount: 50, rate: 1, upgradeLevel: 0 }
+    const state: GameState = { currency: 50, businesses: { bayas: 1 } }
     renderHook(() => useAutosave(state))
 
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull()
@@ -28,7 +28,7 @@ describe('useAutosave', () => {
   })
 
   it('guarda inmediatamente al ocultar la pestaña', () => {
-    const state: GameState = { amount: 7, rate: 0, upgradeLevel: 1 }
+    const state: GameState = { currency: 7, businesses: { bayas: 2 } }
     renderHook(() => useAutosave(state))
 
     Object.defineProperty(document, 'visibilityState', {
@@ -36,6 +36,17 @@ describe('useAutosave', () => {
       configurable: true,
     })
     document.dispatchEvent(new Event('visibilitychange'))
+
+    const raw = localStorage.getItem(STORAGE_KEY)
+    expect(raw).not.toBeNull()
+    expect(JSON.parse(raw as string).state).toEqual(state)
+  })
+
+  it('guarda en pagehide como cinturón de seguridad al cerrar (bug 5 del GDD §10)', () => {
+    const state: GameState = { currency: 11, businesses: { bayas: 3 } }
+    renderHook(() => useAutosave(state))
+
+    window.dispatchEvent(new Event('pagehide'))
 
     const raw = localStorage.getItem(STORAGE_KEY)
     expect(raw).not.toBeNull()

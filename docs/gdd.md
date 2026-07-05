@@ -179,6 +179,10 @@ i18n (catálogo de textos separado, sin literales en componentes).
 
 ## 10. Bugs y deudas del código actual (detectados 2026-07-05)
 
+> **Estado (R0, 2026-07-05):** bugs **1, 2, 3 (cap online) y 5 corregidos** — validación estricta con
+> migración v2, `rate` eliminado del save, tope de 60s por tick y `pagehide` en el autosave. El tramo
+> offline del bug 3 se cierra en R2; el bug 4 (`formatNumber`) queda para R1.
+
 1. **`persistence/load.ts` — validación rota por `typeof null === 'object'`:** un save con
    `state: null` pasa el guard `isSaveFileShape` y revienta en runtime. Además no valida los campos
    internos (`amount`/`rate`/`upgradeLevel` pueden faltar o no ser números) → `NaN` se propaga por
@@ -200,18 +204,32 @@ i18n (catálogo de textos separado, sin literales en componentes).
 Cada fase = una sesión TDD independiente (rojo → verde → refactor), cerrada con
 `pnpm lint && pnpm typecheck && pnpm test && pnpm build` + verificación en preview.
 
-| Fase | Entregable | Notas |
-|---|---|---|
-| **R0** | Fundaciones: tipos nuevos (`GameState` multi-negocio), catálogo `core/data/prehistoria.ts`, migración save v2, fixes bugs 1/2/3(cap)/5 | La base de todo; el save viejo migra o cae a estado inicial limpio |
-| **R1** | Negocios completos: ciclos manuales, niveles, hitos ×2, compra ×1/×10/×máx, cards con barra de ciclo, `formatNumber` ampliado | Primera versión que ya "se siente juego" |
-| **R2** | Ganancias offline generosas + modal de retorno | Cierra del todo el bug 3 |
-| **R3** | Misiones (plantillas + 3 slots) y Renombre con desbloqueos | |
-| **R4** | Agentes: obtención por misiones, automatización, rangos, pestaña Colección | |
-| **R5** | Avance de eras: Egipto y Roma (catálogos), reliquias, consolidación de era | |
-| **R6** | **Renacer**: fórmula de Legado, botón con ganancia pendiente y estado recomendado, Árbol del Legado | El corazón de la petición del usuario |
-| **R7** | Dirección visual completa: tokens por era, set SVG propio, juice, transiciones | Hasta aquí el juego usa placeholders sobrios |
-| **R8** | Pase de balance: telemetría local de tiempos (primera compra, primer agente, primera era, primer renacer) + ajuste de catálogos + QA manual | El tuning iterativo verificado como clave del género |
-| **R9** | Los antiguos MVP-8/9/11: stubs de monetización (rewarded en el modal offline, quitar-anuncios) + checklist de humo + deploy | |
+| Fase | Estado | Entregable | Notas |
+|---|---|---|---|
+| **R0** | ✅ Hecho (2026-07-05) | Fundaciones: tipos nuevos (`GameState` multi-negocio), catálogo `core/data/prehistoria.ts`, migración save v2, fixes bugs 1/2/3(cap)/5 | La base de todo; el save viejo migra o cae a estado inicial limpio |
+| **R1** | Pendiente | Negocios completos: ciclos manuales, niveles, hitos ×2, compra ×1/×10/×máx, cards con barra de ciclo, `formatNumber` ampliado | Primera versión que ya "se siente juego" |
+| **R2** | Pendiente | Ganancias offline generosas + modal de retorno | Cierra del todo el bug 3 |
+| **R3** | Pendiente | Misiones (plantillas + 3 slots) y Renombre con desbloqueos | |
+| **R4** | Pendiente | Agentes: obtención por misiones, automatización, rangos, pestaña Colección | |
+| **R5** | Pendiente | Avance de eras: Egipto y Roma (catálogos), reliquias, consolidación de era | |
+| **R6** | Pendiente | **Renacer**: fórmula de Legado, botón con ganancia pendiente y estado recomendado, Árbol del Legado | El corazón de la petición del usuario |
+| **R7** | Pendiente | Dirección visual completa: tokens por era, set SVG propio, juice, transiciones | Hasta aquí el juego usa placeholders sobrios |
+| **R8** | Pendiente | Pase de balance: telemetría local de tiempos (primera compra, primer agente, primera era, primer renacer) + ajuste de catálogos + QA manual | El tuning iterativo verificado como clave del género |
+| **R9** | Pendiente | Los antiguos MVP-8/9/11: stubs de monetización (rewarded en el modal offline, quitar-anuncios) + checklist de humo + deploy | |
+
+### Decisiones de implementación anotadas durante R0 (2026-07-05)
+
+- **Producción continua provisional en R0:** hasta que R1 implemente los ciclos reales con barra de
+  progreso, cada negocio produce de forma continua su media derivada (`nivel × producción/ciclo ÷
+  duración`, en `core/businesses.ts:productionPerMs`). Es el puente para que el juego siga vivo entre
+  fases; R1 lo sustituye.
+- **El save v2 incluye `savedAt`** (timestamp del guardado): lo consumirá el flujo offline de R2 sin
+  necesitar una migración v3.
+- **Migración v1→v2:** `amount`→`currency`; `upgradeLevel` (la mejora única de relleno) se mapea a
+  niveles extra de Recolección de bayas sobre su nivel 1 gratis; `rate` se descarta (era estado
+  derivado, bug 2). Un save irrecuperable (envenenado/versión desconocida) cae al estado inicial limpio.
+- **Ids del estado que ya no existen en el catálogo** se conservan en el save pero se ignoran en la
+  producción — retirar un negocio en un rebalanceo no envenena saves.
 
 ## 12. Decisiones abiertas (no bloquean R0-R2; decidir antes de R3-R6)
 

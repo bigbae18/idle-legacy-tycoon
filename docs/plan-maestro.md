@@ -195,5 +195,11 @@ avance de eras (Prehistoria → Egipto → Roma), **renacer con Legado + árbol 
 amortiguación √, banda +50–200% verificada), offline generoso, dirección visual con assets SVG
 propios, **5 bugs detectados en el código actual** (GDD §10) y el roadmap real **R0-R9** (GDD §11).
 
-**Siguiente paso: implementar la fase R0 del GDD** (fundaciones: tipos multi-negocio, catálogo de
-datos, migración de save a v2, corrección de los bugs 1/2/3/5).
+**Fase R0 del GDD: ✅ completa (2026-07-05)** — `GameState` multi-negocio, catálogo
+`core/data/prehistoria.ts` (5 negocios), migración real de save a `schemaVersion: 2` (verificada en
+vivo con el save v1 de desarrollo: 3M/nivel 67 migró limpio) y corregidos los bugs 1/2/3(cap)/5 del
+GDD §10. Suite en 54 tests, lint/typecheck/build en verde, jugabilidad comprobada en preview
+(producción derivada exacta: 35/s con 68 bayas + 1 hoguera).
+
+**Siguiente paso: fase R1 del GDD** (ciclos manuales con barra de progreso, hitos ×2, compra
+×1/×10/×máx, cards de negocio, `formatNumber` ampliado — bug 4).

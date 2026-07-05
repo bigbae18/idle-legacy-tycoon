@@ -1,9 +1,11 @@
 import type { GameState } from '../core/types'
 
-export const CURRENT_SCHEMA_VERSION = 1
+export const CURRENT_SCHEMA_VERSION = 2
 export const STORAGE_KEY = 'idle-legacy-tycoon:save'
 
 export interface SaveFile {
-  schemaVersion: number
+  schemaVersion: typeof CURRENT_SCHEMA_VERSION
+  /** Timestamp (ms epoch) del momento del guardado — lo consumirá el flujo offline (R2). */
+  savedAt: number
   state: GameState
 }

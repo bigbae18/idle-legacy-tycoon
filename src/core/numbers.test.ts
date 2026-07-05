@@ -1,16 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatNumber, perSecondToPerMs } from './numbers'
-
-describe('perSecondToPerMs', () => {
-  it('convierte una tasa por segundo a la unidad interna por milisegundo', () => {
-    expect(perSecondToPerMs(1)).toBe(0.001)
-    expect(perSecondToPerMs(10)).toBe(0.01)
-  })
-
-  it('con 0 por segundo, da 0 por milisegundo', () => {
-    expect(perSecondToPerMs(0)).toBe(0)
-  })
-})
+import { formatNumber } from './numbers'
 
 describe('formatNumber', () => {
   it('por debajo de 1000 muestra el entero tal cual', () => {

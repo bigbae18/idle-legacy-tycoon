@@ -24,11 +24,17 @@ export function useAutosave(state: GameState): void {
         save(stateRef.current, localStorageAdapter)
       }
     }
+    // pagehide cubre cierres donde visibilitychange no llega a dispararse (bug 5 del GDD §10)
+    const handlePageHide = () => {
+      save(stateRef.current, localStorageAdapter)
+    }
     document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('pagehide', handlePageHide)
 
     return () => {
       clearInterval(intervalId)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('pagehide', handlePageHide)
     }
   }, [])
 }

@@ -1,25 +1,19 @@
 import type { GameState } from '../core/types'
-import { STORAGE_KEY, type SaveFile } from './schema'
+import { migrateToCurrent } from './migrations'
+import { STORAGE_KEY } from './schema'
 import type { StorageAdapter } from './storageAdapter'
 
-function isSaveFileShape(value: unknown): value is SaveFile {
-  if (typeof value !== 'object' || value === null) return false
-  const candidate = value as Record<string, unknown>
-  return typeof candidate.schemaVersion === 'number' && typeof candidate.state === 'object'
-}
-
 /**
- * Sin migraciones todavía: solo existe schemaVersion=1. Cuando el esquema cambie de verdad
- * (MVP-7), aquí es donde se encadenarían las migraciones antes de devolver el estado.
+ * Carga el save, migrándolo a la versión actual si hace falta. Cualquier save
+ * irrecuperable (corrupto, envenenado, versión desconocida) cae al fallback.
  */
-export function load(adapter: StorageAdapter, fallback: GameState): GameState {
+export function load(adapter: StorageAdapter, fallback: GameState, now = Date.now()): GameState {
   const raw = adapter.getItem(STORAGE_KEY)
   if (!raw) return fallback
 
   try {
     const parsed: unknown = JSON.parse(raw)
-    if (!isSaveFileShape(parsed)) return fallback
-    return parsed.state
+    return migrateToCurrent(parsed, now)?.state ?? fallback
   } catch {
     return fallback
   }
