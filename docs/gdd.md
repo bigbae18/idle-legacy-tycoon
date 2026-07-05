@@ -329,6 +329,12 @@ Cada fase = una sesión TDD independiente (rojo → verde → refactor), cerrada
    misiones ya la usan).
 2. Qué pasa con los **agentes al renacer** (ver recomendación "álbum persiste, efecto se reobtiene"
    en §6) — cerrar en el diseño fino de R6.
+3. **Economía en cascada tipo AdVenture Communist (en evaluación, 2026-07-06):** el usuario propone
+   que solo el primer negocio de la era produzca el recurso/moneda y cada negocio superior produzca
+   **unidades del anterior** (verificado con fuentes: en Communist el tier 1 produce el recurso y
+   "communes produce farmers"). Interactúa con la decisión abierta nº 1 (el nombre de la moneda) y
+   con las plantillas de misiones de R3 — **decidir antes de empezar R3**; si se adopta, entra como
+   fase "R2.5" con reescritura de §3.
 
 ## 13. Visión ampliada post-R1 (2026-07-05) — anotada, NO priorizada
 
