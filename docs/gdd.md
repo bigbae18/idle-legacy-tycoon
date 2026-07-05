@@ -59,6 +59,14 @@ Regla anti-muro que debe sobrevivir a cualquier rebalanceo: entre negocios conse
 escala ~×15 y la producción ~×8-12 → **siempre hay una compra "grande" alcanzable en el horizonte**
 y ningún negocio deja de ser relevante de golpe.
 
+**Refinamiento del usuario (2026-07-05, a aplicar desde R1):** todos los negocios de la era generan
+la **misma moneda contextual de la era** (confirmado); la escala entre negocios es "más cantidad por
+ciclo a costa de más tiempo de ciclo". Subir de nivel debe poder mejorar **tanto la cantidad como el
+tiempo de recolecta** (los hitos no son solo ×2 de producción: algunos reducen ciclo). Objetivo de
+balance explícito: **a largo plazo debe compensar invertir en los negocios lentos y caros**, porque
+dan más beneficio "al momento" — la estrategia óptima madura hacia los negocios grandes, no se queda
+en spamear el primero.
+
 Objetivos de ritmo (a validar en R8): primera compra <15 s · primer agente ≈ 5 min · Prehistoria
 completa en el primer run ≈ 60-90 min de juego activo.
 
@@ -137,8 +145,17 @@ del usuario con Ages).
 - *Rama Memoria:* empezar el run con la Hoguera desbloqueada · +8h de tope offline · conservar el
   10% del Sustento al renacer · desbloqueo directo de la Era 2 (nodo caro, final de rama).
 
-- **Qué resetea el renacer:** eras, negocios, niveles, monedas, misiones en curso.
-  **Qué persiste:** Renombre, agentes, reliquias, Legado y su árbol, ajustes.
+- **Alcance del reset — refinado por el usuario (2026-07-05):** el renacer **resetea todas las eras
+  y los beneficios que aportaban** (incluidas las **reliquias de era**, que dejan de ser permanentes
+  y se reconsiguen en cada run). La única mejora permanente es el **Legado**: una moneda de renacer
+  **ajena a las eras**, cuyo efecto debe sentirse **potente** (multiplicador global + árbol).
+- **Qué resetea el renacer:** eras, negocios, niveles, monedas de era, reliquias, misiones en curso.
+  **Qué persiste:** Legado y su árbol, Renombre, ajustes.
+- **Pendiente de cerrar en R6 — los agentes:** la frase del usuario ("se resetean las eras y sus
+  beneficios") apunta a que su *efecto económico* (automatización/bonos) también se pierde al
+  renacer. Recomendación a validar con él: la **colección como álbum persiste** (fichas, lore,
+  rangos conseguidos) pero los agentes **hay que reobtenerlos en cada run** para que automaticen —
+  el renacer conserva el coleccionismo sin regalar la economía.
 
 ## 7. Ganancias offline
 
@@ -173,6 +190,9 @@ del usuario con Ages).
 
 Lore ligero, no narrativa pesada: cada era abre con 2-3 frases con humor cálido ("Alguien ha
 descubierto que la carne sabe mejor caliente. Eres oficialmente la persona más lista del valle.").
+**Decisión del usuario (2026-07-05): el tono acompaña a la evolución** — la voz de los textos
+evoluciona con las eras (más primitiva y tosca al principio, más elaborada según la civilización
+avanza), manteniendo el humor ligero como constante.
 Cada agente y reliquia lleva 1-2 líneas de ficha en la Colección — dato histórico real + chiste
 suave. Textos en español primero (mercado de validación), arquitectura de strings preparada para
 i18n (catálogo de textos separado, sin literales en componentes).
@@ -207,7 +227,7 @@ Cada fase = una sesión TDD independiente (rojo → verde → refactor), cerrada
 | Fase | Estado | Entregable | Notas |
 |---|---|---|---|
 | **R0** | ✅ Hecho (2026-07-05) | Fundaciones: tipos nuevos (`GameState` multi-negocio), catálogo `core/data/prehistoria.ts`, migración save v2, fixes bugs 1/2/3(cap)/5 | La base de todo; el save viejo migra o cae a estado inicial limpio |
-| **R1** | Pendiente | Negocios completos: ciclos manuales, niveles, hitos ×2, compra ×1/×10/×máx, cards con barra de ciclo, `formatNumber` ampliado | Primera versión que ya "se siente juego" |
+| **R1** | Pendiente | Negocios completos: ciclos activados por tap, niveles, hitos (producción y ciclo), compra ×1/×10/×máx, cards con barra de ciclo, `formatNumber` ampliado, **botón "reiniciar partida" con confirmación** | Primera versión que ya "se siente juego"; el reinicio lo pidió el usuario tras R0 |
 | **R2** | Pendiente | Ganancias offline generosas + modal de retorno | Cierra del todo el bug 3 |
 | **R3** | Pendiente | Misiones (plantillas + 3 slots) y Renombre con desbloqueos | |
 | **R4** | Pendiente | Agentes: obtención por misiones, automatización, rangos, pestaña Colección | |
@@ -231,9 +251,26 @@ Cada fase = una sesión TDD independiente (rojo → verde → refactor), cerrada
 - **Ids del estado que ya no existen en el catálogo** se conservan en el save pero se ignoran en la
   producción — retirar un negocio en un rebalanceo no envenena saves.
 
-## 12. Decisiones abiertas (no bloquean R0-R2; decidir antes de R3-R6)
+## 12. Decisiones abiertas y decididas (revisión 2026-07-05 con el usuario)
 
-1. Nombres finales: ¿"Sustento/Renombre/Legado/vestigios" o alternativas? *(Propuesta actual en este doc.)*
-2. Tono de textos: humor ligero (recomendado, §9) vs. serio-divulgativo.
-3. ¿El tap manual desaparece al automatizar o queda como "impulso" que acelera el ciclo? *(Recomendado: queda como impulso — da algo que hacer al jugador activo.)*
-4. ¿3 eras al lanzamiento son suficientes para validar retención? *(Recomendado: sí; la 4ª es contenido post-validación.)*
+**Decididas por el usuario:**
+
+- **Tono de textos:** humor ligero cuya voz **evoluciona con las eras** (§9).
+- **Tap manual:** es la **activación del ciclo** de cada negocio hasta conseguir el agente que lo
+  automatiza; con el agente, el ciclo se reinicia solo. (Si tras automatizar queda algún uso opcional
+  del tap, se decide en el pase de balance — por defecto, no.)
+- **3 eras al lanzamiento: sí**, con su aviso explícito: *se quedaría corto hasta el renacer si cada
+  era no consume tiempo suficiente* → objetivo de balance para R8: la duración de cada era debe dar
+  recorrido real al primer renacer (no llegar a él en una tarde vaciando las 3 eras).
+- **Moneda contextual por era** (todos los negocios de la era producen la misma) y **niveles que
+  mejoran cantidad y tiempo** — detalle en §3.
+- **Renacer = reset total de eras y sus beneficios; el Legado es la única mejora permanente y debe
+  ser potente** — detalle en §6.
+
+**Siguen abiertas:**
+
+1. Nombres finales de monedas/sistemas. El usuario apuntó "**piedras**" como ejemplo de recurso de la
+   era 1 — candidata "Piedra" frente al "Sustento" propuesto aquí. Decidir antes de R3 (los textos de
+   misiones ya la usan).
+2. Qué pasa con los **agentes al renacer** (ver recomendación "álbum persiste, efecto se reobtiene"
+   en §6) — cerrar en el diseño fino de R6.
