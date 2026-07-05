@@ -19,7 +19,7 @@ function Consumer() {
 
 const INITIAL: GameState = {
   currency: 7,
-  businesses: { bayas: { level: 1, cycleElapsedMs: null } },
+  businesses: { recolectores: { count: 1, purchased: 1, cycleElapsedMs: null } },
 }
 
 describe('GameProvider', () => {
@@ -40,7 +40,7 @@ describe('GameProvider', () => {
 
   it('con guardado previo, carga ese estado en vez del initialState', () => {
     save(
-      { currency: 123, businesses: { bayas: { level: 4, cycleElapsedMs: null } } },
+      { currency: 123, businesses: { recolectores: { count: 4, purchased: 4, cycleElapsedMs: null } } },
       localStorageAdapter,
     )
 
@@ -54,9 +54,9 @@ describe('GameProvider', () => {
   })
 
   it('al cargar, liquida el tiempo fuera: un ciclo lanzado completa, cobra y expone el resumen', () => {
-    // bayas nivel 4 con ciclo lanzado, guardado hace 60s: el ciclo (2s) completó fuera → +4
+    // 4 recolectores con ciclo lanzado, guardado hace 60s: el ciclo (2s) completó fuera → +4
     save(
-      { currency: 10, businesses: { bayas: { level: 4, cycleElapsedMs: 0 } } },
+      { currency: 10, businesses: { recolectores: { count: 4, purchased: 4, cycleElapsedMs: 0 } } },
       localStorageAdapter,
       Date.now() - 60_000,
     )
@@ -73,7 +73,7 @@ describe('GameProvider', () => {
 
   it('dismissOfflineSummary retira el resumen (cierra el modal)', () => {
     save(
-      { currency: 0, businesses: { bayas: { level: 4, cycleElapsedMs: 0 } } },
+      { currency: 0, businesses: { recolectores: { count: 4, purchased: 4, cycleElapsedMs: 0 } } },
       localStorageAdapter,
       Date.now() - 60_000,
     )
@@ -90,7 +90,7 @@ describe('GameProvider', () => {
 
   it('tiempo fuera sin ciclos lanzados: sin resumen (el modal solo aparece con cobro)', () => {
     save(
-      { currency: 50, businesses: { bayas: { level: 4, cycleElapsedMs: null } } },
+      { currency: 50, businesses: { recolectores: { count: 4, purchased: 4, cycleElapsedMs: null } } },
       localStorageAdapter,
       Date.now() - 60_000,
     )

@@ -23,7 +23,7 @@ describe('save', () => {
     const adapter = createMemoryAdapter()
     const state: GameState = {
       currency: 42,
-      businesses: { bayas: { level: 2, cycleElapsedMs: 500 } },
+      businesses: { recolectores: { count: 5, purchased: 2, cycleElapsedMs: 500 } },
     }
     const now = 1_751_800_000_000
 

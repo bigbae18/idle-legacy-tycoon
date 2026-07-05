@@ -27,8 +27,8 @@ describe('loadSave', () => {
     const state: GameState = {
       currency: 99,
       businesses: {
-        bayas: { level: 4, cycleElapsedMs: 750 },
-        hoguera: { level: 2, cycleElapsedMs: null },
+        recolectores: { count: 40, purchased: 4, cycleElapsedMs: 750 },
+        hoguera: { count: 2, purchased: 2, cycleElapsedMs: null },
       },
     }
     save(state, adapter, NOW - 60_000)
@@ -59,7 +59,7 @@ describe('loadSave', () => {
 
   it('state:null devuelve null en vez de reventar (bug 1 del GDD §10)', () => {
     const adapter = createMemoryAdapter()
-    adapter.setItem(STORAGE_KEY, JSON.stringify({ schemaVersion: 3, savedAt: 1, state: null }))
+    adapter.setItem(STORAGE_KEY, JSON.stringify({ schemaVersion: 4, savedAt: 1, state: null }))
 
     expect(loadSave(adapter, NOW)).toBeNull()
   })
@@ -68,20 +68,20 @@ describe('loadSave', () => {
     const adapter = createMemoryAdapter()
     adapter.setItem(
       STORAGE_KEY,
-      JSON.stringify({ schemaVersion: 3, savedAt: 1, state: { currency: NaN, businesses: {} } }),
+      JSON.stringify({ schemaVersion: 4, savedAt: 1, state: { currency: NaN, businesses: {} } }),
     )
 
     expect(loadSave(adapter, NOW)).toBeNull()
   })
 
-  it('un save v2 (R0) se migra conservando su savedAt', () => {
+  it('un save v3 (R1/R2) se migra conservando su savedAt', () => {
     const adapter = createMemoryAdapter()
     adapter.setItem(
       STORAGE_KEY,
       JSON.stringify({
-        schemaVersion: 2,
+        schemaVersion: 3,
         savedAt: NOW - 5000,
-        state: { currency: 42, businesses: { bayas: 3 } },
+        state: { currency: 42, businesses: { bayas: { level: 3, cycleElapsedMs: 800 } } },
       }),
     )
 
@@ -89,7 +89,11 @@ describe('loadSave', () => {
 
     expect(result?.savedAt).toBe(NOW - 5000)
     expect(result?.state.currency).toBe(42)
-    expect(result?.state.businesses.bayas).toEqual({ level: 3, cycleElapsedMs: null })
+    expect(result?.state.businesses.recolectores).toEqual({
+      count: 3,
+      purchased: 3,
+      cycleElapsedMs: 800,
+    })
   })
 
   it('un save v1 antiguo se migra en vez de perderse (savedAt = ahora: sin timestamp no hay offline)', () => {
@@ -103,6 +107,10 @@ describe('loadSave', () => {
 
     expect(result?.savedAt).toBe(NOW)
     expect(result?.state.currency).toBe(500)
-    expect(result?.state.businesses.bayas).toEqual({ level: 6, cycleElapsedMs: null })
+    expect(result?.state.businesses.recolectores).toEqual({
+      count: 6,
+      purchased: 6,
+      cycleElapsedMs: null,
+    })
   })
 })

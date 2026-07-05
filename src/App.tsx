@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import {
-  businessLevel,
   bulkCost,
   createInitialState,
   cycleDurationMs,
   maxAffordable,
   outputPerCycle,
-  purchaseLevels,
+  purchaseUnits,
   startCycle,
 } from './core/businesses'
 import { PREHISTORIA } from './core/data/prehistoria'
@@ -24,31 +23,39 @@ import { ResourceDisplay } from './ui/components/ResourceDisplay/ResourceDisplay
 import { GameProvider } from './ui/GameProvider'
 import { useGame } from './ui/hooks/useGame'
 
+/** Nombre del recurso de la era activa (Prehistoria). Con R5 (multi-era) saldrá del catálogo de eras. */
+const CURRENCY_NAME = 'Bayas'
+
 function GameScreen() {
   const { state, setState, offlineSummary, dismissOfflineSummary } = useGame()
   // Preferencia de sesión, no se persiste (decisión R1); R3 gateará ×10/×máx tras Renombre 3
   const [multiplier, setMultiplier] = useState<BuyMultiplier>(1)
 
-  const cards: BusinessCardData[] = PREHISTORIA.map((business) => {
-    const current = state.businesses[business.id] ?? { level: 0, cycleElapsedMs: null }
-    // A nivel 0 la card enseña lo que produciría el nivel 1 (vista previa del desbloqueo)
-    const displayLevel = Math.max(current.level, 1)
-    const duration = cycleDurationMs(business, displayLevel)
+  const cards: BusinessCardData[] = PREHISTORIA.map((business, index) => {
+    const current = state.businesses[business.id] ?? {
+      count: 0,
+      purchased: 0,
+      cycleElapsedMs: null,
+    }
+    // A 0 unidades la card enseña lo que produciría la primera (vista previa del desbloqueo)
+    const displayCount = Math.max(current.count, 1)
+    const duration = cycleDurationMs(business, displayCount)
     const count =
       multiplier === 'max'
-        ? Math.max(1, maxAffordable(business, current.level, state.currency))
+        ? Math.max(1, maxAffordable(business, current.purchased, state.currency))
         : multiplier
-    const cost = bulkCost(business, current.level, count)
+    const cost = bulkCost(business, current.purchased, count)
 
     return {
       id: business.id,
       name: business.name,
-      level: current.level,
-      outputPerCycle: outputPerCycle(business, displayLevel),
+      owned: current.count,
+      producesLabel: index === 0 ? CURRENCY_NAME : PREHISTORIA[index - 1].name,
+      outputPerCycle: outputPerCycle(business, displayCount),
       cycleDurationMs: duration,
       cycleProgress:
         current.cycleElapsedMs === null ? null : Math.min(current.cycleElapsedMs / duration, 1),
-      nextMilestone: nextMilestone(current.level),
+      nextMilestone: nextMilestone(current.count),
       purchase: { count, cost, canAfford: state.currency >= cost },
     }
   })
@@ -62,10 +69,10 @@ function GameScreen() {
     if (!business) return
     // El lote se recalcula contra el estado del momento de la compra, no del render
     setState((previous) => {
-      const level = businessLevel(previous, business.id)
+      const purchased = previous.businesses[business.id]?.purchased ?? 0
       const count =
-        multiplier === 'max' ? maxAffordable(business, level, previous.currency) : multiplier
-      return purchaseLevels(previous, business, count)
+        multiplier === 'max' ? maxAffordable(business, purchased, previous.currency) : multiplier
+      return purchaseUnits(previous, business, count)
     })
   }
 
@@ -80,11 +87,12 @@ function GameScreen() {
         <OfflineEarningsModal
           earned={offlineSummary.earned}
           elapsedMs={offlineSummary.elapsedMs}
+          currencyName={CURRENCY_NAME}
           onClose={dismissOfflineSummary}
         />
       )}
-      <ResourceDisplay amount={state.currency} label="Sustento" />
-      <p className="currency-label">Sustento</p>
+      <ResourceDisplay amount={state.currency} label={CURRENCY_NAME} />
+      <p className="currency-label">{CURRENCY_NAME}</p>
       <BuyMultiplierSelector value={multiplier} onChange={setMultiplier} />
       <ul className="business-list">
         {cards.map((card) => (

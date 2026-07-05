@@ -1,72 +1,78 @@
 import { productionMultiplier, speedMultiplier } from './milestones'
 import type { BusinessDefinition, BusinessState, GameState } from './types'
 
-const IDLE: BusinessState = { level: 0, cycleElapsedMs: null }
+const EMPTY: BusinessState = { count: 0, purchased: 0, cycleElapsedMs: null }
 
-/** Estado de partida: el primer negocio del catálogo viene desbloqueado a nivel 1 (GDD §3). */
+/** Estado de partida: el primer eslabón de la cadena viene con 1 unidad gratis (GDD §3). */
 export function createInitialState(catalog: BusinessDefinition[]): GameState {
   const businesses: Record<string, BusinessState> = {}
   for (const [index, business] of catalog.entries()) {
-    businesses[business.id] = { level: index === 0 ? 1 : 0, cycleElapsedMs: null }
+    const starting = index === 0 ? 1 : 0
+    businesses[business.id] = { count: starting, purchased: starting, cycleElapsedMs: null }
   }
   return { currency: 0, businesses }
 }
 
-export function businessLevel(state: GameState, businessId: string): number {
-  return state.businesses[businessId]?.level ?? 0
+/** Unidades totales del negocio (compradas + producidas). */
+export function businessCount(state: GameState, businessId: string): number {
+  return state.businesses[businessId]?.count ?? 0
 }
 
-/** Coste de comprar el siguiente nivel estando en `level`: base × crecimiento^nivel. */
-export function levelCost(business: BusinessDefinition, level: number): number {
-  return Math.ceil(business.baseCost * business.costGrowth ** level)
+/**
+ * Coste de la siguiente unidad con `purchased` ya compradas: base × crecimiento^compradas.
+ * Escala SOLO con lo comprado — las unidades producidas por la cascada no encarecen
+ * (nuestro sustituto de los "comrades" de AdVenture Communist, decisión R2.5).
+ */
+export function unitCost(business: BusinessDefinition, purchased: number): number {
+  return Math.ceil(business.baseCost * business.costGrowth ** purchased)
 }
 
-/** Producción por ciclo al nivel dado: nivel × base × hitos de producción (GDD §3). */
-export function outputPerCycle(business: BusinessDefinition, level: number): number {
-  return level * business.baseOutputPerCycle * productionMultiplier(level)
+/** Producción por ciclo: unidades totales × base × hitos de producción (GDD §3). */
+export function outputPerCycle(business: BusinessDefinition, count: number): number {
+  return count * business.baseOutputPerCycle * productionMultiplier(count)
 }
 
-/** Duración real del ciclo al nivel dado: base ÷ hitos de velocidad (GDD §3). */
-export function cycleDurationMs(business: BusinessDefinition, level: number): number {
-  return business.cycleMs / speedMultiplier(level)
+/** Duración real del ciclo: base ÷ hitos de velocidad (GDD §3). */
+export function cycleDurationMs(business: BusinessDefinition, count: number): number {
+  return business.cycleMs / speedMultiplier(count)
 }
 
-/** Coste total de comprar `count` niveles seguidos partiendo de `level` (suma de costes por nivel). */
-export function bulkCost(business: BusinessDefinition, level: number, count: number): number {
+/** Coste total de comprar `count` unidades seguidas partiendo de `purchased` compradas. */
+export function bulkCost(business: BusinessDefinition, purchased: number, count: number): number {
   let total = 0
   for (let i = 0; i < count; i++) {
-    total += levelCost(business, level + i)
+    total += unitCost(business, purchased + i)
   }
   return total
 }
 
-/** Cuántos niveles seguidos alcanzan los fondos partiendo de `level` (para la compra ×máx). */
+/** Cuántas unidades seguidas alcanzan los fondos partiendo de `purchased` (para la compra ×máx). */
 export function maxAffordable(
   business: BusinessDefinition,
-  level: number,
+  purchased: number,
   currency: number,
 ): number {
   let count = 0
   let remaining = currency
-  let cost = levelCost(business, level)
+  let cost = unitCost(business, purchased)
   while (remaining >= cost) {
     remaining -= cost
     count += 1
-    cost = levelCost(business, level + count)
+    cost = unitCost(business, purchased + count)
   }
   return count
 }
 
-/** Compra exactamente `count` niveles si alcanzan los fondos (todo o nada); si no, no-op. */
-export function purchaseLevels(
+/** Compra exactamente `count` unidades si alcanzan los fondos (todo o nada); si no, no-op. */
+export function purchaseUnits(
   state: GameState,
   business: BusinessDefinition,
   count: number,
 ): GameState {
   if (count < 1) return state
 
-  const current = state.businesses[business.id] ?? IDLE
-  const cost = bulkCost(business, current.level, count)
+  const current = state.businesses[business.id] ?? EMPTY
+  const cost = bulkCost(business, current.purchased, count)
   if (state.currency < cost) return state
 
   return {
@@ -74,15 +80,19 @@ export function purchaseLevels(
     currency: state.currency - cost,
     businesses: {
       ...state.businesses,
-      [business.id]: { ...current, level: current.level + count },
+      [business.id]: {
+        ...current,
+        count: current.count + count,
+        purchased: current.purchased + count,
+      },
     },
   }
 }
 
-/** Tap del jugador: lanza el ciclo del negocio si tiene nivel y está en reposo (GDD §3). */
+/** Tap del jugador: lanza el ciclo del negocio si tiene unidades y está en reposo (GDD §3). */
 export function startCycle(state: GameState, businessId: string): GameState {
   const current = state.businesses[businessId]
-  if (!current || current.level < 1 || current.cycleElapsedMs !== null) return state
+  if (!current || current.count < 1 || current.cycleElapsedMs !== null) return state
 
   return {
     ...state,

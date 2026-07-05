@@ -32,41 +32,49 @@
 
 Transversal a todo: la **colección** (agentes + reliquias), que persiste siempre.
 
-## 3. Negocios (economía dentro de una era)
+## 3. Negocios (economía dentro de una era) — v2: cadena de producción (R2.5)
 
-Cada era tiene **una moneda propia** y **5 negocios** que la producen.
+> **Rediseñado el 2026-07-06 por decisión del usuario**, sobre el modelo verificado de AdVenture
+> Communist/Ages ("es lo que más me convenció al principio"): una línea de producción donde todo
+> acaba desembocando en lo primero, que es lo que da la moneda. Sustituye al modelo original
+> "todos los negocios producen la moneda de la era" (v1, conservado en el historial de git).
 
-- **Ciclo de producción:** cada negocio produce por ciclos con duración fija (barra de progreso).
-  Al principio el ciclo se lanza **manualmente** (tap) — referencia AdVenture Ages que pidió el
-  usuario; cuando su **agente** se consigue (§5), el negocio queda **automatizado** (el ciclo se
-  reinicia solo). El tap manual sigue disponible como impulso (ver árbol del Legado).
-- **Niveles:** comprar niveles sube la producción por ciclo de forma lineal.
-  `coste(n) = base × crecimiento^n` (n = nivel actual). Compra ×1 / ×10 / ×máx.
-- **Hitos:** a nivel **10 / 25 / 50 / 100 / 200**, la producción del negocio se **×2**. Son los
-  picos de dopamina de la capa corta; se marcan visualmente en la card ("próximo hito: 25").
+Cada era tiene **un recurso** (su moneda) y **5 negocios en cadena**. El orden del catálogo ES la
+cadena: el primer negocio produce el recurso; cada negocio posterior produce **unidades del
+anterior**.
 
-Catálogo de la **Era 1 — Prehistoria** (moneda: **Sustento**):
+- **Ciclo de producción (sin cambios):** cada negocio produce por ciclos con barra de progreso,
+  lanzados por **tap** hasta que su agente (§5) lo automatiza en R4. Producción por ciclo =
+  unidades totales × base × hitos de producción.
+- **Unidades, no niveles:** lo que antes era "nivel" es ahora el número de **unidades** del
+  negocio: se **compran** con el recurso y también las **produce** el eslabón superior. Ambas
+  cuentan igual para la producción y los hitos.
+- **Precio por comprado (mejora propia sobre Communist):** el coste escala solo con las unidades
+  **compradas** — `coste(n) = base × crecimiento^compradas` — y lo producido por la cascada no
+  encarece. Communist resuelve este problema con una segunda moneda (comrades); separar
+  `count`/`purchased` lo consigue sin meta-moneda extra.
+- **Hitos por unidades totales:** tabla **duplicante** 10 / 25 / 50 / 100 / 200 / 400 / … / ~820K
+  (`core/data/milestones.ts`), porque la cascada infla los conteos rápido. Solo 3 hitos son de
+  velocidad (ciclo ÷2 en 25/100/800; tope ÷8 para que el ciclo no tienda a 0); el resto,
+  producción ×2. Se marcan en la card ("próximo hito: 50 uds.").
+- **Compra ×1 / ×10 / ×máx (sin cambios).**
 
-| Negocio | Coste base | Crecimiento | Ciclo | Producción base/ciclo | Agente que lo automatiza |
-|---|---|---|---|---|---|
-| Recolección de bayas | 4 *(nivel 1 gratis al empezar)* | 1,09 | 2 s | 1 | Australopithecus |
-| Hoguera | 60 | 1,12 | 6 s | 6 | Homo erectus *(dominó el fuego)* |
-| Caza mayor | 900 | 1,14 | 15 s | 50 | Neandertal |
-| Taller de sílex | 14.000 | 1,17 | 40 s | 550 | Homo habilis *(el de las herramientas)* |
-| Pinturas rupestres | 220.000 | 1,20 | 100 s | 7.500 | Homo sapiens *(el arte simbólico)* |
+Catálogo de la **Era 1 — Prehistoria** (recurso: **Bayas** — decisión cerrada, antes "Sustento"):
 
-Regla anti-muro que debe sobrevivir a cualquier rebalanceo: entre negocios consecutivos el coste
-escala ~×15 y la producción ~×8-12 → **siempre hay una compra "grande" alcanzable en el horizonte**
-y ningún negocio deja de ser relevante de golpe.
+| Negocio | Produce | Coste base | Crecimiento | Ciclo | Unid./ciclo base | Agente que lo automatiza |
+|---|---|---|---|---|---|---|
+| Recolectores *(1 gratis al empezar)* | **Bayas** | 4 | 1,09 | 2 s | 1 | Australopithecus |
+| Hogueras *(atraen recolectores)* | Recolectores | 60 | 1,12 | 6 s | 1 | Homo erectus *(dominó el fuego)* |
+| Partidas de caza *(alimentan hogueras)* | Hogueras | 900 | 1,14 | 15 s | 1 | Neandertal |
+| Talleres de sílex *(arman partidas)* | Partidas de caza | 14.000 | 1,17 | 40 s | 1 | Homo habilis *(el de las herramientas)* |
+| Pinturas rupestres *(transmiten el saber)* | Talleres de sílex | 220.000 | 1,20 | 100 s | 1 | Homo sapiens *(el arte simbólico)* |
 
-**Refinamiento del usuario (2026-07-05, a aplicar desde R1):** todos los negocios de la era generan
-la **misma moneda contextual de la era** (confirmado); la escala entre negocios es "más cantidad por
-ciclo a costa de más tiempo de ciclo". Subir de nivel debe poder mejorar **tanto la cantidad como el
-tiempo de recolecta** (los hitos no son solo ×2 de producción: algunos reducen ciclo). Objetivo de
-balance explícito: **a largo plazo debe compensar invertir en los negocios lentos y caros**, porque
-dan más beneficio "al momento" — la estrategia óptima madura hacia los negocios grandes, no se queda
-en spamear el primero. *(Concretado en R1: hitos 10/50/200 = producción ×2; hitos 25/100 = ciclo a
-la mitad — catálogo en `core/data/milestones.ts`, ver decisiones R1 en §11.)*
+Regla anti-muro (versión cadena): el eslabón superior es siempre la **inversión a largo plazo** —
+cada unidad suya se compone hacia abajo por toda la cadena, así que la estrategia óptima madura
+hacia los negocios caros de forma **estructural** (el refinamiento del usuario de 2026-07-05 deja
+de ser un objetivo de tuning: lo garantiza la topología). La cadena es **extensible por datos**:
+añadir un eslabón (Communist llega a 11 tiers) es una entrada más de catálogo, sin lógica nueva —
+el deseo del usuario de "cadena larga" es contenido post-lanzamiento, no rediseño.
 
 Objetivos de ritmo (a validar en R8): primera compra <15 s · primer agente ≈ 5 min · Prehistoria
 completa en el primer run ≈ 60-90 min de juego activo.
@@ -231,6 +239,7 @@ Cada fase = una sesión TDD independiente (rojo → verde → refactor), cerrada
 | **R0** | ✅ Hecho (2026-07-05) | Fundaciones: tipos nuevos (`GameState` multi-negocio), catálogo `core/data/prehistoria.ts`, migración save v2, fixes bugs 1/2/3(cap)/5 | La base de todo; el save viejo migra o cae a estado inicial limpio |
 | **R1** | ✅ Hecho (2026-07-05) | Negocios completos: ciclos activados por tap, niveles, hitos (producción y ciclo), compra ×1/×10/×máx, cards con barra de ciclo, `formatNumber` ampliado, **botón "reiniciar partida" con confirmación** | Primera versión que ya "se siente juego"; el reinicio lo pidió el usuario tras R0 |
 | **R2** | ✅ Hecho (2026-07-06) | Ganancias offline generosas + modal de retorno | Cierra del todo el bug 3 |
+| **R2.5** | ✅ Hecho (2026-07-06) | **Economía en cascada** (§3 v2): cadena de producción, count/purchased, hitos duplicantes, save v4, recurso "Bayas" | Rediseño decidido por el usuario tras verificar el sistema de Communist; hecho antes de R3 a propósito (las misiones se construyen sobre la economía definitiva) |
 | **R3** | Pendiente | Misiones (plantillas + 3 slots) y Renombre con desbloqueos | |
 | **R4** | Pendiente | Agentes: obtención por misiones, automatización, rangos, pestaña Colección | |
 | **R5** | Pendiente | Avance de eras: Egipto y Roma (catálogos), reliquias, consolidación de era | |
@@ -306,6 +315,28 @@ Cada fase = una sesión TDD independiente (rojo → verde → refactor), cerrada
   save sembrado a mano al recargar el preview — para simular tiempo fuera hay que neutralizar
   `localStorage.setItem` de la página viva antes de escribir la semilla y recargar.
 
+### Decisiones de implementación anotadas durante R2.5 (2026-07-06)
+
+- **La cadena es el ORDEN del catálogo** (implícita, sin campo extra): el índice 0 produce la
+  moneda; el índice i produce unidades del índice i−1. Un único lugar de verdad, imposible de
+  desincronizar con un campo `produces`.
+- **`count`/`purchased` separados** en el estado de negocio (save v4): `count` (total) deriva
+  producción e hitos; `purchased` (comprado) deriva SOLO el precio. Sin esta separación, el coste
+  exponencial revienta con los conteos producidos (`growth^n` → Infinity con n en miles) — es la
+  razón por la que Communist necesita comrades, y nuestra alternativa sin segunda moneda.
+- **Cobros con semántica de snapshot** en `advanceCycles`: si varios eslabones completan en el
+  mismo tick, cada uno cobra con sus unidades PRE-tick — determinista aunque el de arriba
+  acredite al de abajo en ese mismo tick.
+- **Save v4 + renombrado `bayas`→`recolectores`** (en la cadena "Bayas" es el recurso, no un
+  negocio): migración v3→v4 con `count = purchased = level` (lo poseído se considera comprado:
+  el precio continúa donde estaba). La migración v1→v2 ahora congela sus ids históricos en vez
+  de leer el catálogo vivo — los catálogos cambian, las migraciones no deben.
+- **`earned` del resumen offline sigue siendo solo moneda:** las unidades producidas fuera se
+  acreditan en silencio; el modal las desglosará cuando la automatización (R4) las haga
+  protagonistas.
+- **El nombre del recurso llega por prop/constante** (`CURRENCY_NAME` en App,
+  `currencyName` en el modal): con R5 (multi-era) saldrá del catálogo de eras.
+
 ## 12. Decisiones abiertas y decididas (revisión 2026-07-05 con el usuario)
 
 **Decididas por el usuario:**
@@ -321,20 +352,17 @@ Cada fase = una sesión TDD independiente (rojo → verde → refactor), cerrada
   mejoran cantidad y tiempo** — detalle en §3.
 - **Renacer = reset total de eras y sus beneficios; el Legado es la única mejora permanente y debe
   ser potente** — detalle en §6.
+- **Economía en cascada (2026-07-06): adoptada "sin duda" e implementada en R2.5** — ver §3 v2.
+  Al usuario le convence además por monetización ("un gerente por sitio" = los agentes del §5) y
+  quiere **cadena larga** — cubierto: extensible por datos.
+- **Recurso de la era 1: "Bayas"** (2026-07-06, resuelta con la cascada): el recurso tangible
+  sustituye al abstracto "Sustento"/"Piedra". Patrón para R5: cada era nombra su recurso propio
+  (Egipto y Roma se deciden al escribir sus catálogos).
 
 **Siguen abiertas:**
 
-1. Nombres finales de monedas/sistemas. El usuario apuntó "**piedras**" como ejemplo de recurso de la
-   era 1 — candidata "Piedra" frente al "Sustento" propuesto aquí. Decidir antes de R3 (los textos de
-   misiones ya la usan).
-2. Qué pasa con los **agentes al renacer** (ver recomendación "álbum persiste, efecto se reobtiene"
+1. Qué pasa con los **agentes al renacer** (ver recomendación "álbum persiste, efecto se reobtiene"
    en §6) — cerrar en el diseño fino de R6.
-3. **Economía en cascada tipo AdVenture Communist (en evaluación, 2026-07-06):** el usuario propone
-   que solo el primer negocio de la era produzca el recurso/moneda y cada negocio superior produzca
-   **unidades del anterior** (verificado con fuentes: en Communist el tier 1 produce el recurso y
-   "communes produce farmers"). Interactúa con la decisión abierta nº 1 (el nombre de la moneda) y
-   con las plantillas de misiones de R3 — **decidir antes de empezar R3**; si se adopta, entra como
-   fase "R2.5" con reescritura de §3.
 
 ## 13. Visión ampliada post-R1 (2026-07-05) — anotada, NO priorizada
 

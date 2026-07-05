@@ -1,6 +1,6 @@
 import type { GameState } from '../core/types'
 
-export const CURRENT_SCHEMA_VERSION = 3
+export const CURRENT_SCHEMA_VERSION = 4
 export const STORAGE_KEY = 'idle-legacy-tycoon:save'
 
 export interface SaveFile {

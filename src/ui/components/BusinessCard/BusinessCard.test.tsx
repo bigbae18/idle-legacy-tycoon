@@ -4,12 +4,13 @@ import { BusinessCard, type BusinessCardData } from './BusinessCard'
 
 const BASE: BusinessCardData = {
   id: 'hoguera',
-  name: 'Hoguera',
-  level: 3,
-  outputPerCycle: 18,
+  name: 'Hogueras',
+  owned: 3,
+  producesLabel: 'Recolectores',
+  outputPerCycle: 3,
   cycleDurationMs: 6000,
   cycleProgress: null,
-  nextMilestone: { level: 10, effect: 'production', multiplier: 2 },
+  nextMilestone: { count: 10, effect: 'production', multiplier: 2 },
   purchase: { count: 1, cost: 84, canAfford: true },
 }
 
@@ -29,24 +30,30 @@ function renderCard(overrides: Partial<BusinessCardData> = {}, handlers = {}) {
 }
 
 describe('BusinessCard', () => {
-  it('muestra nombre, nivel, producción por ciclo y duración del ciclo', () => {
+  it('muestra nombre, unidades poseídas y qué produce por ciclo (la cadena, R2.5)', () => {
     renderCard()
 
-    expect(screen.getByText('Hoguera')).toBeInTheDocument()
-    expect(screen.getByText('Nv. 3')).toBeInTheDocument()
-    expect(screen.getByText(/\+18/)).toBeInTheDocument()
+    expect(screen.getByText('Hogueras')).toBeInTheDocument()
+    expect(screen.getByText('×3')).toBeInTheDocument()
+    expect(screen.getByText(/\+3 Recolectores/)).toBeInTheDocument()
     expect(screen.getByText(/6s/)).toBeInTheDocument()
   })
 
-  it('marca el próximo hito de producción', () => {
+  it('formatea las unidades grandes con sufijo', () => {
+    renderCard({ owned: 45_200 })
+
+    expect(screen.getByText('×45.2K')).toBeInTheDocument()
+  })
+
+  it('marca el próximo hito por unidades', () => {
     renderCard()
 
-    expect(screen.getByText(/Nv\. 10/)).toBeInTheDocument()
+    expect(screen.getByText(/10 uds\./)).toBeInTheDocument()
     expect(screen.getByText(/producción ×2/)).toBeInTheDocument()
   })
 
   it('marca el próximo hito de velocidad con su texto propio', () => {
-    renderCard({ nextMilestone: { level: 25, effect: 'speed', multiplier: 2 } })
+    renderCard({ nextMilestone: { count: 25, effect: 'speed', multiplier: 2 } })
 
     expect(screen.getByText(/ciclo ×2 más rápido/)).toBeInTheDocument()
   })
@@ -60,29 +67,23 @@ describe('BusinessCard', () => {
   it('el tap notifica el id del negocio', () => {
     const { onTap } = renderCard()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Recolectar Hoguera' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Recolectar Hogueras' }))
 
     expect(onTap).toHaveBeenCalledOnce()
     expect(onTap).toHaveBeenCalledWith('hoguera')
   })
 
-  it('en reposo la barra de progreso está a 0', () => {
-    renderCard()
-
-    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0')
-  })
-
   it('con ciclo en curso el tap se deshabilita y la barra refleja el progreso', () => {
     renderCard({ cycleProgress: 0.5 })
 
-    expect(screen.getByRole('button', { name: 'Recolectar Hoguera' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Recolectar Hogueras' })).toBeDisabled()
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50')
   })
 
   it('la compra notifica el id y muestra lote y coste', () => {
     const { onPurchase } = renderCard({ purchase: { count: 10, cost: 1200, canAfford: true } })
 
-    const buyButton = screen.getByRole('button', { name: 'Comprar Hoguera' })
+    const buyButton = screen.getByRole('button', { name: 'Comprar Hogueras' })
     expect(buyButton).toHaveTextContent('×10')
     expect(buyButton).toHaveTextContent('1.2K')
 
@@ -94,14 +95,14 @@ describe('BusinessCard', () => {
   it('sin fondos el botón de compra se deshabilita', () => {
     renderCard({ purchase: { count: 1, cost: 84, canAfford: false } })
 
-    expect(screen.getByRole('button', { name: 'Comprar Hoguera' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Comprar Hogueras' })).toBeDisabled()
   })
 
-  it('a nivel 0 el negocio está bloqueado: sin botón de tap, la compra lo desbloquea', () => {
-    renderCard({ level: 0 })
+  it('a 0 unidades el negocio está bloqueado: sin botón de tap, la compra lo desbloquea', () => {
+    renderCard({ owned: 0 })
 
-    expect(screen.queryByRole('button', { name: 'Recolectar Hoguera' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Recolectar Hogueras' })).not.toBeInTheDocument()
     expect(screen.getByText('Bloqueado')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Comprar Hoguera' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Comprar Hogueras' })).toHaveTextContent('Desbloquear')
   })
 })

@@ -4,8 +4,11 @@ import type { MilestoneDefinition } from '../../../core/types'
 export interface BusinessCardData {
   id: string
   name: string
-  level: number
-  /** Producción y duración a mostrar (para nivel 0, la vista previa del nivel 1). */
+  /** Unidades totales poseídas (compradas + producidas por la cascada). */
+  owned: number
+  /** Qué produce este eslabón: "Bayas" (primer negocio) o el nombre del anterior. */
+  producesLabel: string
+  /** Producción y duración a mostrar (para 0 unidades, la vista previa de la primera). */
   outputPerCycle: number
   cycleDurationMs: number
   /** Progreso 0..1 del ciclo en curso; null = en reposo. */
@@ -31,9 +34,9 @@ function milestoneLabel(milestone: MilestoneDefinition): string {
     : `ciclo ×${milestone.multiplier} más rápido`
 }
 
-/** Card de negocio (GDD §8): nivel, barra de ciclo, tap, compra y marcador de hito. */
+/** Card de un eslabón de la cadena (GDD §3/§8): unidades, barra de ciclo, tap, compra e hito. */
 export function BusinessCard({ business, onTap, onPurchase }: BusinessCardProps) {
-  const locked = business.level === 0
+  const locked = business.owned === 0
   const running = business.cycleProgress !== null
   const progressPercent = Math.round((business.cycleProgress ?? 0) * 100)
 
@@ -41,10 +44,11 @@ export function BusinessCard({ business, onTap, onPurchase }: BusinessCardProps)
     <li className={`business-card${locked ? ' business-card--locked' : ''}`}>
       <div className="business-header">
         <span className="business-name">{business.name}</span>
-        <span className="business-level">Nv. {business.level}</span>
+        <span className="business-count">×{formatNumber(business.owned)}</span>
       </div>
       <p className="business-yield">
-        +{formatNumber(business.outputPerCycle)} · {formatCycleSeconds(business.cycleDurationMs)}
+        +{formatNumber(business.outputPerCycle)} {business.producesLabel} ·{' '}
+        {formatCycleSeconds(business.cycleDurationMs)}
       </p>
       <div
         className="cycle-bar"
@@ -81,7 +85,7 @@ export function BusinessCard({ business, onTap, onPurchase }: BusinessCardProps)
       </div>
       <p className="business-milestone">
         {business.nextMilestone
-          ? `Próximo hito: Nv. ${business.nextMilestone.level} — ${milestoneLabel(business.nextMilestone)}`
+          ? `Próximo hito: ${formatNumber(business.nextMilestone.count)} uds. — ${milestoneLabel(business.nextMilestone)}`
           : 'Hitos completos'}
       </p>
     </li>

@@ -17,7 +17,7 @@ describe('useAutosave', () => {
   it('guarda el estado automáticamente pasado el intervalo', () => {
     const state: GameState = {
       currency: 50,
-      businesses: { bayas: { level: 1, cycleElapsedMs: null } },
+      businesses: { recolectores: { count: 1, purchased: 1, cycleElapsedMs: null } },
     }
     renderHook(() => useAutosave(state))
 
@@ -33,7 +33,7 @@ describe('useAutosave', () => {
   it('guarda inmediatamente al ocultar la pestaña', () => {
     const state: GameState = {
       currency: 7,
-      businesses: { bayas: { level: 2, cycleElapsedMs: 400 } },
+      businesses: { recolectores: { count: 2, purchased: 2, cycleElapsedMs: 400 } },
     }
     renderHook(() => useAutosave(state))
 
@@ -51,7 +51,7 @@ describe('useAutosave', () => {
   it('guarda en pagehide como cinturón de seguridad al cerrar (bug 5 del GDD §10)', () => {
     const state: GameState = {
       currency: 11,
-      businesses: { bayas: { level: 3, cycleElapsedMs: null } },
+      businesses: { recolectores: { count: 3, purchased: 3, cycleElapsedMs: null } },
     }
     renderHook(() => useAutosave(state))
 

@@ -226,6 +226,19 @@ cerrado del todo (los 5 de la auditoría, resueltos)**. Suite en 131 tests, lint
 verde, verificado jugando en el preview aislado (modal con desglose exacto, tope de 8 h, sin modal
 sin cobro, juego normal intacto).
 
+**Fase R2.5 del GDD: ✅ completa (2026-07-06)** — **rediseño de la economía a cadena de
+producción** tipo AdVenture Communist/Ages, decidido por el usuario tras verificar el sistema con
+fuentes (era su referencia de mejor ritmo del género y la investigación de julio lo tenía como
+laguna): solo los **Recolectores** producen **Bayas** (el recurso de la era, decisión que cierra
+el debate "Sustento vs Piedra"); cada negocio superior produce unidades del anterior (Hogueras →
+Recolectores → …, GDD §3 v2, roster de homínidos intacto). Mejora propia sobre Communist: el
+precio escala solo con lo **comprado** (`count`/`purchased` separados), sin necesidad de la
+segunda moneda (comrades). Save v4 con migración v1→v2→v3→v4 (renombra `bayas`→`recolectores`),
+verificada en vivo. Hitos por unidades totales con tabla duplicante. Verificado jugando en el
+preview aislado: la producción de Hogueras cruzó el hito 25 de los Recolectores en vivo (ciclo
+2s→1s), precio invariante bajo producción (12→12) y avanzando al comprar (12→13), +56 Bayas
+exactas por tap. Suite en 131 tests, gates en verde. Hecho a propósito ANTES de R3: las misiones
+se construyen sobre la economía definitiva.
+
 **Siguiente paso: fase R3 del GDD** (misiones con plantillas parametrizadas + 3 slots y Renombre
-con desbloqueos). Antes de sus textos: decidir el nombre de la moneda de la era 1 — "Sustento" vs
-"Piedra" (GDD §12).
+con desbloqueos), ya sobre la economía en cadena.
