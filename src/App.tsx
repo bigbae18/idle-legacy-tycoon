@@ -18,13 +18,14 @@ import {
   BuyMultiplierSelector,
   type BuyMultiplier,
 } from './ui/components/BuyMultiplierSelector/BuyMultiplierSelector'
+import { OfflineEarningsModal } from './ui/components/OfflineEarningsModal/OfflineEarningsModal'
 import { ResetButton } from './ui/components/ResetButton/ResetButton'
 import { ResourceDisplay } from './ui/components/ResourceDisplay/ResourceDisplay'
 import { GameProvider } from './ui/GameProvider'
 import { useGame } from './ui/hooks/useGame'
 
 function GameScreen() {
-  const { state, setState } = useGame()
+  const { state, setState, offlineSummary, dismissOfflineSummary } = useGame()
   // Preferencia de sesión, no se persiste (decisión R1); R3 gateará ×10/×máx tras Renombre 3
   const [multiplier, setMultiplier] = useState<BuyMultiplier>(1)
 
@@ -75,6 +76,13 @@ function GameScreen() {
 
   return (
     <div className="game-card">
+      {offlineSummary && (
+        <OfflineEarningsModal
+          earned={offlineSummary.earned}
+          elapsedMs={offlineSummary.elapsedMs}
+          onClose={dismissOfflineSummary}
+        />
+      )}
       <ResourceDisplay amount={state.currency} label="Sustento" />
       <p className="currency-label">Sustento</p>
       <BuyMultiplierSelector value={multiplier} onChange={setMultiplier} />

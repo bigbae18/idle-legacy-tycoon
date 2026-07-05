@@ -31,3 +31,18 @@ export function formatNumber(value: number): string {
 
   return String(floored)
 }
+
+/** Formatea una duración para mostrarla ("3h 24m", "12m", "45s") — modal de retorno, GDD §7. */
+export function formatDuration(ms: number): string {
+  const totalMinutes = Math.floor(ms / 60_000)
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+
+  if (hours >= 1) {
+    return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`
+  }
+  if (totalMinutes >= 1) {
+    return `${totalMinutes}m`
+  }
+  return `${Math.floor(ms / 1000)}s`
+}

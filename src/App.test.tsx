@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App.tsx'
 import { save } from './persistence/save'
@@ -6,10 +6,11 @@ import { STORAGE_KEY } from './persistence/schema'
 import { localStorageAdapter } from './persistence/storageAdapter'
 
 /** Siembra un save v3 con bayas al nivel dado y el resto de negocios a 0. */
-function seedSave(currency: number, bayasLevel = 1) {
+function seedSave(currency: number, bayasLevel = 1, cycleElapsedMs: number | null = null, savedAt = Date.now()) {
   save(
-    { currency, businesses: { bayas: { level: bayasLevel, cycleElapsedMs: null } } },
+    { currency, businesses: { bayas: { level: bayasLevel, cycleElapsedMs } } },
     localStorageAdapter,
+    savedAt,
   )
 }
 
@@ -94,6 +95,30 @@ describe('App', () => {
 
     expect(screen.getByText('Nv. 4')).toBeInTheDocument()
     expect(screen.getByLabelText('Sustento')).toHaveTextContent('5')
+  })
+
+  it('al volver con un ciclo lanzado que completó fuera, muestra el modal de retorno con el desglose', () => {
+    // bayas nivel 5 con ciclo lanzado hace 1 minuto: completó fuera → +5
+    seedSave(100, 5, 0, Date.now() - 60_000)
+    render(<App />)
+
+    const modal = screen.getByRole('dialog', { name: 'Ganancias offline' })
+    expect(within(modal).getByText(/Mientras no estabas/)).toBeInTheDocument()
+    expect(within(modal).getByText(/\+5/)).toBeInTheDocument()
+    expect(within(modal).getByText(/en 1m/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Sustento')).toHaveTextContent('105')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Recoger' }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Sustento')).toHaveTextContent('105')
+  })
+
+  it('al volver sin ciclos lanzados no hay modal (solo aparece con cobro)', () => {
+    seedSave(100, 5, null, Date.now() - 60_000)
+    render(<App />)
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('reiniciar partida: tras confirmar, borra el save y vuelve al estado inicial', () => {

@@ -200,10 +200,10 @@ i18n (catálogo de textos separado, sin literales en componentes).
 
 ## 10. Bugs y deudas del código actual (detectados 2026-07-05)
 
-> **Estado (R1, 2026-07-05):** bugs **1, 2, 3 (cap online), 4 y 5 corregidos**. R0: validación
-> estricta con migración v2, `rate` eliminado del save, tope de 60s por tick y `pagehide` en el
-> autosave. R1: `formatNumber` ampliado (escala corta hasta <1e33 + notación exponencial). El tramo
-> offline del bug 3 se cierra en R2.
+> **Estado (R2, 2026-07-06): los 5 bugs corregidos del todo.** R0: validación estricta con
+> migración v2, `rate` eliminado del save, tope de 60s por tick y `pagehide` en el autosave.
+> R1: `formatNumber` ampliado (escala corta hasta <1e33 + notación exponencial). R2: el tramo
+> >60s del tick se liquida por el flujo offline con su tope — bug 3 cerrado por completo.
 
 1. **`persistence/load.ts` — validación rota por `typeof null === 'object'`:** un save con
    `state: null` pasa el guard `isSaveFileShape` y revienta en runtime. Además no valida los campos
@@ -230,7 +230,7 @@ Cada fase = una sesión TDD independiente (rojo → verde → refactor), cerrada
 |---|---|---|---|
 | **R0** | ✅ Hecho (2026-07-05) | Fundaciones: tipos nuevos (`GameState` multi-negocio), catálogo `core/data/prehistoria.ts`, migración save v2, fixes bugs 1/2/3(cap)/5 | La base de todo; el save viejo migra o cae a estado inicial limpio |
 | **R1** | ✅ Hecho (2026-07-05) | Negocios completos: ciclos activados por tap, niveles, hitos (producción y ciclo), compra ×1/×10/×máx, cards con barra de ciclo, `formatNumber` ampliado, **botón "reiniciar partida" con confirmación** | Primera versión que ya "se siente juego"; el reinicio lo pidió el usuario tras R0 |
-| **R2** | Pendiente | Ganancias offline generosas + modal de retorno | Cierra del todo el bug 3 |
+| **R2** | ✅ Hecho (2026-07-06) | Ganancias offline generosas + modal de retorno | Cierra del todo el bug 3 |
 | **R3** | Pendiente | Misiones (plantillas + 3 slots) y Renombre con desbloqueos | |
 | **R4** | Pendiente | Agentes: obtención por misiones, automatización, rangos, pestaña Colección | |
 | **R5** | Pendiente | Avance de eras: Egipto y Roma (catálogos), reliquias, consolidación de era | |
@@ -281,6 +281,30 @@ Cada fase = una sesión TDD independiente (rojo → verde → refactor), cerrada
   el mismo save (autosave last-writer-wins) — visto durante la verificación con pestañas viejas
   del preview en el mismo origen. Es la norma del género (single-player, single-tab); si algún
   día molesta, se detecta con eventos `storage` o un lock de pestaña. Anotado, no planificado.
+
+### Decisiones de implementación anotadas durante R2 (2026-07-06)
+
+- **Qué produce offline (decisión pedida en el arranque de R2):** sin automatización hasta R4,
+  lo único que produce con el juego cerrado son los **ciclos ya lanzados**, que avanzan con el
+  tiempo real fuera y completan **una sola vez** (no se relanzan). Esto revisa la decisión R1
+  ("el ciclo en curso no avanza con la pestaña cerrada"): ahora sí avanza. El motor compartido
+  `core/tick.ts:advanceCycles` lo usan el tick online y `core/offline.ts:settleOffline` — R4
+  enchufará ahí la producción automatizada y ambos flujos la heredarán sin duplicar lógica.
+- **El hueco >60 s del tick online** (pestaña suspendida) se liquida con el mismo
+  `settleOffline` (con su mismo tope) y dispara el mismo modal — cierre definitivo del bug 3:
+  un único sistema de cobro para todo tiempo no tickeado.
+- **El modal solo aparece si hubo cobro (>0):** sin automatización, "+0 en 3h" sería ruido.
+  El cobro se **acredita al liquidar**, no al pulsar "Recoger" (cerrar sin pulsar no pierde
+  nada); el rewarded ×2 de R9 añadirá su extra encima usando el `earned` del resumen.
+- **Tope en datos:** `core/data/offline.ts:OFFLINE_CAP_MS` (8 h), parámetro de `settleOffline`
+  para que el árbol del Legado (R6) lo amplíe a 24 h sin tocar lógica.
+- **`loadSave` sustituye a `load`** en persistencia: devuelve el save completo (estado +
+  `savedAt`, que es lo que consume el flujo offline) o `null`; el fallback al estado inicial
+  pasa a ser decisión del `GameProvider`.
+- **`formatDuration`** en `core/numbers.ts` ("3h 24m" / "12m" / "45s") para el desglose del modal.
+- **Truco de QA (documentado para futuros pases):** el autosave en `pagehide` pisa cualquier
+  save sembrado a mano al recargar el preview — para simular tiempo fuera hay que neutralizar
+  `localStorage.setItem` de la página viva antes de escribir la semilla y recargar.
 
 ## 12. Decisiones abiertas y decididas (revisión 2026-07-05 con el usuario)
 

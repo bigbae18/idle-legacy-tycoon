@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatNumber } from './numbers'
+import { formatDuration, formatNumber } from './numbers'
 
 describe('formatNumber', () => {
   it('por debajo de 1000 muestra el entero tal cual', () => {
@@ -36,5 +36,27 @@ describe('formatNumber', () => {
 
   it('trunca decimales del valor de entrada antes de formatear', () => {
     expect(formatNumber(999.9)).toBe('999')
+  })
+})
+
+describe('formatDuration', () => {
+  it('por debajo del minuto muestra segundos', () => {
+    expect(formatDuration(0)).toBe('0s')
+    expect(formatDuration(500)).toBe('0s')
+    expect(formatDuration(45_000)).toBe('45s')
+  })
+
+  it('a partir del minuto muestra minutos', () => {
+    expect(formatDuration(60_000)).toBe('1m')
+    expect(formatDuration(12 * 60_000)).toBe('12m')
+  })
+
+  it('a partir de la hora muestra "Xh Ym" (el formato del modal de retorno, GDD §7)', () => {
+    expect(formatDuration(3 * 3_600_000 + 24 * 60_000)).toBe('3h 24m')
+  })
+
+  it('con minutos a cero omite el "0m"', () => {
+    expect(formatDuration(3_600_000)).toBe('1h')
+    expect(formatDuration(8 * 3_600_000)).toBe('8h')
   })
 })

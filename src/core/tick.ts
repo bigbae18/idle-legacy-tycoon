@@ -3,23 +3,23 @@ import type { BusinessDefinition, GameState } from './types'
 
 /**
  * Tope de delta por tick online (GDD §7 y bug 3 del §10): un delta mayor significa
- * pestaña suspendida/dormida, y ese tiempo lo liquida el flujo offline (R2), no el tick.
+ * pestaña suspendida/dormida, y ese tiempo lo liquida el flujo offline, no el tick.
  */
 export const MAX_TICK_DELTA_MS = 60_000
 
 /**
- * Avanza los ciclos activos `deltaMs` milisegundos. Un ciclo completado cobra su
- * producción y deja el negocio en reposo — sin automatización (llega en R4) no se
- * relanza solo, así que como mucho se cobra un ciclo por negocio y tick.
- * Pura: mismo input, mismo output.
+ * Motor compartido de ciclos (lo usan el tick online y el flujo offline): avanza los
+ * ciclos activos `elapsedMs` milisegundos. Un ciclo completado cobra su producción y
+ * deja el negocio en reposo — sin automatización (llega en R4) no se relanza solo,
+ * así que como mucho se cobra un ciclo por negocio. R4 enchufará aquí la producción
+ * automatizada para que ambos flujos la hereden. Pura: mismo input, mismo output.
  */
-export function tick(state: GameState, deltaMs: number, catalog: BusinessDefinition[]): GameState {
-  const clampedDelta = Math.min(Math.max(deltaMs, 0), MAX_TICK_DELTA_MS)
-  if (clampedDelta === 0) {
-    return state
-  }
-
-  let currency = state.currency
+export function advanceCycles(
+  state: GameState,
+  elapsedMs: number,
+  catalog: BusinessDefinition[],
+): { state: GameState; earned: number } {
+  let earned = 0
   let anyCycleActive = false
   const businesses = { ...state.businesses }
 
@@ -28,9 +28,9 @@ export function tick(state: GameState, deltaMs: number, catalog: BusinessDefinit
     if (!current || current.cycleElapsedMs === null) continue
 
     anyCycleActive = true
-    const elapsed = current.cycleElapsedMs + clampedDelta
+    const elapsed = current.cycleElapsedMs + elapsedMs
     if (elapsed >= cycleDurationMs(business, current.level)) {
-      currency += outputPerCycle(business, current.level)
+      earned += outputPerCycle(business, current.level)
       businesses[business.id] = { ...current, cycleElapsedMs: null }
     } else {
       businesses[business.id] = { ...current, cycleElapsedMs: elapsed }
@@ -38,8 +38,18 @@ export function tick(state: GameState, deltaMs: number, catalog: BusinessDefinit
   }
 
   if (!anyCycleActive) {
+    return { state, earned: 0 }
+  }
+
+  return { state: { currency: state.currency + earned, businesses }, earned }
+}
+
+/** Avanza el estado un tick online, con el delta capado a MAX_TICK_DELTA_MS. */
+export function tick(state: GameState, deltaMs: number, catalog: BusinessDefinition[]): GameState {
+  const clampedDelta = Math.min(Math.max(deltaMs, 0), MAX_TICK_DELTA_MS)
+  if (clampedDelta === 0) {
     return state
   }
 
-  return { currency, businesses }
+  return advanceCycles(state, clampedDelta, catalog).state
 }

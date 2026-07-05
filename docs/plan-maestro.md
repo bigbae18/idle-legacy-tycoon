@@ -216,5 +216,16 @@ visual como escena por era (eleva el listón de R7), más eras como pipeline de 
 (Tiradas/Tienda/Aventura — con brainstorming dedicado pendiente), y el marco de escalabilidad del
 proyecto. No altera el orden R2-R9.
 
-**Siguiente paso: fase R2 del GDD** (ganancias offline generosas + modal de retorno — cierra del
-todo el bug 3 usando el `savedAt` que el save v2 ya dejó preparado).
+**Fase R2 del GDD: ✅ completa (2026-07-06)** — ganancias offline por timestamp absoluto
+(`core/offline.ts:settleOffline`, tope de 8 h en `core/data/offline.ts`) y modal de retorno con
+desglose ("Mientras no estabas: +X Sustento en Yh Zm"), con el hueco del rewarded ×2 (R9)
+preparado. Sin automatización (R4), lo que produce offline son los ciclos ya lanzados, que
+completan una sola vez; el motor compartido `advanceCycles` deja el enchufe listo para la
+producción automatizada. El hueco >60 s del tick online se liquida por el mismo flujo — **bug 3
+cerrado del todo (los 5 de la auditoría, resueltos)**. Suite en 131 tests, lint/typecheck/build en
+verde, verificado jugando en el preview aislado (modal con desglose exacto, tope de 8 h, sin modal
+sin cobro, juego normal intacto).
+
+**Siguiente paso: fase R3 del GDD** (misiones con plantillas parametrizadas + 3 slots y Renombre
+con desbloqueos). Antes de sus textos: decidir el nombre de la moneda de la era 1 — "Sustento" vs
+"Piedra" (GDD §12).
